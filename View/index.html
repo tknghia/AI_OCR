@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Converter</title>
+
+    <!-- <link href="{{ url_for('static', filename='../View/style.css/style.css') }}" /> -->
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4ff;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+
+        /* ============================ Header ============================ */
+
+
+        header {
+            background-color: white;
+            padding: 20px 0;
+        }
+
+        .logo h1 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #333;
+            font-size: 16px;
+        }
+
+
+        /* ============================ Content ============================ */
+
+
+        .content {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .content h2 {
+            font-size: 36px;
+            color: #333;
+        }
+
+        .content p {
+            font-size: 16px;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .advertisement {
+            margin: 20px 0;
+            color: gray;
+            font-size: 12px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+        }
+
+        .upload-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            /* ==================================================== */
+            text-align: center;
+        }
+
+        .img_upload {
+            display: block;
+            margin: 0 auto 20px;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .upload-box .content_upload {
+            font-size: 18px;
+            margin-bottom: 20px;
+            /* ======================================================= */
+            display: flex;
+            /* Sử dụng flexbox để sắp xếp các file-info */
+            flex-wrap: wrap;
+            /* Cho phép xuống dòng khi không đủ chỗ */
+            justify-content: flex-start;
+            /* Căn lề trái */
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .file-upload-btn {
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            font-size: 16px;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .file-upload-btn:hover {
+            background-color: #001eff;
+        }
+
+        .file-upload {
+            display: none;
+        }
+
+        .upload-box.file-uploaded {
+            align-items: flex-start;
+        }
+
+        /* btn convert */
+
+        .convert-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .convert-btn:hover {
+            background-color: #45a049;
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+            max-width: 100px;
+        }
+
+        .file-info p {
+            margin: 0;
+        }
+
+        .file-info img {
+            max-width: 100px;
+            max-height: 100px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .image-name {
+            margin-top: 5px;
+            max-width: 100%;
+            word-wrap: break-word;
+        }
+
+        .file-info span {
+            align-items: flex-start;
+        }
+
+
+        /* ============================ Footer ============================ */
+
+
+        footer {
+            background-color: #f4f4f4;
+            padding: 20px 0;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-content p {
+            margin: 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .footer-links li {
+            display: inline;
+        }
+
+        .footer-links a {
+            text-decoration: none;
+            font-size: 14px;
+            color: #007BFF;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Image to Text Converter</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Jpg to Word</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main>
+        <section class="content">
+            <h2>Image To Text</h2>
+            <p>Turn picture into text with our free image to text converter. Simply upload your photos in OCR online and
+                extract text from image with a single click.</p>
+            <div class="advertisement">ADVERTISEMENT</div>
+            <div class="upload-section">
+                <div class="upload-box">
+                    <img src="../View/file.png" alt="Upload Icon" class="img_upload">
+                    <p class="content_upload">Upload or drag and drop multiple pictures.</p>
+                    <div class="button-container">
+                        <button type="button" class="file-upload-btn"
+                            onclick="document.getElementById('file-upload').click();">
+                            Browse
+                        </button>
+                        <button type="button" id="convert-btn" class="convert-btn" style="display: none;">
+                            Start
+                        </button>
+                    </div>
+                    <input type="file" id="file-upload" class="file-upload" multiple>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <p>&copy; 2024 Image to Text Converter. All rights reserved.</p>
+                <ul class="footer-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+<script>
+    // Lắng nghe sự kiện thay đổi trên input file
+    document.getElementById('file-upload').addEventListener('change', function (event) {
+        const fileInput = event.target;
+        const files = fileInput.files;
+        const uploadBox = document.querySelector('.upload-box');
+        const uploadIcon = uploadBox.querySelector('.img_upload');
+        const uploadContent = uploadBox.querySelector('.content_upload');
+        const convertBtn = document.getElementById('convert-btn');
+
+        // Xóa nội dung cũ
+        uploadIcon.style.display = 'none';
+        uploadContent.innerHTML = '';
+
+        // Duyệt qua tất cả các file đã chọn
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // Tạo div chứa hình ảnh và tên file
+            const fileInfoDiv = document.createElement('div');
+            fileInfoDiv.classList.add('file-info');
+
+            // Hiển thị hình ảnh nếu file là ảnh
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Hình ảnh đã chọn';
+                    img.style.maxWidth = '100px';
+                    img.style.maxHeight = '100px';
+
+                    // Tạo phần tên file bên dưới hình ảnh
+                    const fileName = document.createElement('p');
+                    const maxLength = 20;
+                    fileName.textContent = file.name.length > maxLength ?
+                        file.name.substring(0, maxLength) + '...' : file.name;
+
+                    fileInfoDiv.appendChild(img);
+                    fileInfoDiv.appendChild(fileName);
+                };
+                reader.readAsDataURL(file); // Đọc file dưới dạng URL
+            }
+            // Nếu file là PDF
+            else {
+                const fileName = document.createElement('span');
+                const maxLength = 30;
+                fileName.textContent = file.name.length > maxLength ?
+                    file.name.substring(0, maxLength) + '...' : file.name;
+
+                fileInfoDiv.appendChild(fileName);
+            }
+
+            // Thêm div chứa hình ảnh và tên vào uploadContent
+            uploadContent.appendChild(fileInfoDiv);
+        }
+
+        // Hiển thị nút "Bắt đầu chuyển đổi" nếu có file được chọn
+        if (files.length > 0) {
+            convertBtn.style.display = 'block';
+        } else {
+            convertBtn.style.display = 'none';
+        }
+    });
+
+
+</script>
+
+</html>
