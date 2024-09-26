@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Converter</title>
-
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- <link href="{{ url_for('static', filename='../View/style.css/style.css') }}" /> -->
 
     <style>
@@ -289,7 +289,7 @@
                             onclick="document.getElementById('file-upload').click();">
                             Browse
                         </button>
-                        <button type="button" id="convert-btn" class="convert-btn" style="display: none;">
+                        <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
                             Start
                         </button>
                     </div>
@@ -381,6 +381,31 @@
             convertBtn.style.display = 'none';
         }
     });
+
+    function callConvert() {
+    const fileInput = document.getElementById('file-upload');
+    const formData = new FormData();
+
+    // Append each selected file to the FormData object
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('images', fileInput.files[i]); // Append file with the key 'images'
+    }
+
+    $.ajax({
+        url: '/convert',  // Flask route
+        type: 'POST',     // POST request to send data
+        data: formData,
+        contentType: false, // Set content type to false to avoid jQuery setting it
+        processData: false, // Prevent jQuery from transforming the data into a query string
+        success: function(response) {
+            console.log('Response from server:', response);  // Log server response
+            alert(response);  // Show alert with server response
+        },
+        error: function(error) {
+            console.log('Error:', error);  // Log any errors
+        }
+    });
+}
 
 
 </script>
