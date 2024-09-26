@@ -4,6 +4,7 @@ import numpy as np
 import cv2
 from Model.module import vietocr_module as vietocr_module
 from Model.module import crop_text_line as segments
+# from Model.module import east_model as east
 
 def convert_images(files):
     all_predictions = []
