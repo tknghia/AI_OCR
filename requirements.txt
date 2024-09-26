@@ -1,0 +1,7 @@
+tensorflow==2.12.0
+numpy<2
+pillow
+Opencv
+torch
+torchvision
+Document
