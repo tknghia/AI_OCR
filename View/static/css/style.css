@@ -108,11 +108,8 @@ nav ul li a {
     margin-bottom: 20px;
     /* ======================================================= */
     display: flex;
-    /* Sử dụng flexbox để sắp xếp các file-info */
     flex-wrap: wrap;
-    /* Cho phép xuống dòng khi không đủ chỗ */
     justify-content: flex-start;
-    /* Căn lề trái */
 }
 
 .button-container {
@@ -171,6 +168,16 @@ nav ul li a {
     align-items: center;
     margin: 10px;
     max-width: 100px;
+}
+
+.content_upload.pdf-info {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+}
+
+p.content_upload.pdf-file .file-info {
+    max-width: 500px;
 }
 
 .file-info p {

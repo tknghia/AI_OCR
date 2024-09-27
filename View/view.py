@@ -18,11 +18,11 @@ from Controller.controller_with_east import convert_images
 
 from flask import Flask, render_template, request, redirect, url_for
 
-app = Flask(__name__, template_folder='.')
+app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('./index.html')
+    return render_template('index.html')
 
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
