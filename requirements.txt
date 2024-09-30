@@ -1,0 +1,10 @@
+tensorflow==2.12.0
+numpy<2
+pillow
+opencv
+torch
+torchvision
+Document
+flask
+matplotlib
+vietocr (có thể nó sẽ xóa numpy và tải lại numpy mới nhất nên nếu chạy lỗi thì cày lại numpy version 1.23.5)

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Converter</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Image to Text Converter</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Jpg to Word</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main>
+        <section class="content">
+            <h2>Image To Text</h2>
+            <p>Turn picture into text with our free image to text converter. Simply upload your photos in OCR online and
+                extract text from image with a single click.</p>
+            <div class="advertisement">ADVERTISEMENT</div>
+            <div class="upload-section">
+                <div class="upload-box">
+                    <img src="{{ url_for('static', filename='images/file.png') }}" alt="Upload Icon" class="img_upload">
+                    <p class="content_upload">Upload or drag and drop multiple pictures.</p>
+                    <div class="button-container">
+                        <button type="button" class="file-upload-btn"
+                            onclick="document.getElementById('file-upload').click();">
+                            Browse
+                        </button>
+                        <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
+                            Start
+                        </button>
+                    </div>
+                    <input type="file" id="file-upload" class="file-upload" multiple>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-content">
+                <p>&copy; 2024 Image to Text Converter. All rights reserved.</p>
+                <ul class="footer-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+</body>
+
+<script>
+    // Lắng nghe sự kiện thay đổi trên input file
+    document.getElementById('file-upload').addEventListener('change', function (event) {
+        const fileInput = event.target;
+        const files = fileInput.files;
+        const uploadBox = document.querySelector('.upload-box');
+        const uploadIcon = uploadBox.querySelector('.img_upload');
+        const uploadContent = uploadBox.querySelector('.content_upload');
+        const convertBtn = document.getElementById('convert-btn');
+
+        // Xóa nội dung cũ
+        uploadIcon.style.display = 'none';
+        uploadContent.innerHTML = '';
+
+        // Duyệt qua tất cả các file đã chọn
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+
+            // Tạo div chứa hình ảnh và tên file
+            const fileInfoDiv = document.createElement('div');
+            fileInfoDiv.classList.add('file-info');
+
+            // Hiển thị hình ảnh nếu file là ảnh
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = 'Hình ảnh đã chọn';
+                    img.style.maxWidth = '100px';
+                    img.style.maxHeight = '100px';
+
+                    // Tạo phần tên file bên dưới hình ảnh
+                    const fileName = document.createElement('p');
+                    const maxLength = 20;
+                    fileName.textContent = file.name.length > maxLength ?
+                        file.name.substring(0, maxLength) + '...' : file.name;
+
+                    fileInfoDiv.appendChild(img);
+                    fileInfoDiv.appendChild(fileName);
+                };
+                reader.readAsDataURL(file); // Đọc file dưới dạng URL
+            }
+            // Nếu file là PDF
+            else {
+                const fileName = document.createElement('span');
+                const maxLength = 30;
+                fileName.textContent = file.name.length > maxLength ?
+                    file.name.substring(0, maxLength) + '...' : file.name;
+
+                fileInfoDiv.appendChild(fileName);
+            }
+
+            // Thêm div chứa hình ảnh và tên vào uploadContent
+            uploadContent.appendChild(fileInfoDiv);
+        }
+
+        // Hiển thị nút "Bắt đầu chuyển đổi" nếu có file được chọn
+        if (files.length > 0) {
+            convertBtn.style.display = 'block';
+        } else {
+            convertBtn.style.display = 'none';
+        }
+    });
+
+    function callConvert() {
+    const fileInput = document.getElementById('file-upload');
+    const formData = new FormData();
+
+    // Append each selected file to the FormData object
+    for (let i = 0; i < fileInput.files.length; i++) {
+        formData.append('images', fileInput.files[i]); // Append file with the key 'images'
+    }
+
+    $.ajax({
+        url: '/convert',  // Flask route
+        type: 'POST',     // POST request to send data
+        data: formData,
+        contentType: false, // Set content type to false to avoid jQuery setting it
+        processData: false, // Prevent jQuery from transforming the data into a query string
+        success: function(response) {
+            console.log('Response from server:', response);  // Log server response
+            alert(response);  // Show alert with server response
+        },
+        error: function(error) {
+            console.log('Error:', error);  // Log any errors
+        }
+    });
+}
+
+
+</script>
+
+</html>
