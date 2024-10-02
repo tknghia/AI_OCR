@@ -36,23 +36,46 @@
             <p>Turn picture into text with our free image to text converter. Simply upload your photos in OCR online and
                 extract text from image with a single click.</p>
             <div class="advertisement">ADVERTISEMENT</div>
-            <div class="upload-section">
-                <div class="upload-box">
-                    <img src="{{ url_for('static', filename='images/file.png') }}" alt="Upload Icon" class="img_upload">
-                    <p class="content_upload">Upload or drag and drop multiple pictures.</p>
-                    <div class="button-container">
-                        <button type="button" class="file-upload-btn"
-                            onclick="document.getElementById('file-upload').click();">
-                            Browse
-                        </button>
-                        <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
-                            Start
-                        </button>
+            <div class="content-box">
+                <div class="upload-section">
+                    <div class="upload-box">
+                        <img src="{{ url_for('static', filename='images/file.png') }}" alt="Upload Icon" class="img_upload">
+                        <p class="content_upload">Upload or drag and drop multiple pictures.</p>
+                        <div class="button-container">
+                            <button type="button" class="file-upload-btn"
+                                onclick="document.getElementById('file-upload').click();">
+                                Browse
+                            </button>
+                            <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
+                                Start
+                            </button>
+                        </div>
+                        <input type="file" id="file-upload" class="file-upload" multiple>
                     </div>
-                    <input type="file" id="file-upload" class="file-upload" multiple>
+                </div>
+                
+                
+
+                <div class="upload-section">
+                    <div class="upload-box">
+
+                        <h3>Result:</h3>
+                        <p class="content_upload" id="output-text">Your text will be here.</p>
+                        <div class="loader"></div>
+                        <div class="button-container">
+                            <!-- <button type="button" class="file-upload-btn"
+                                onclick="document.getElementById('file-upload').click();">
+                                Browse
+                            </button>
+                            <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
+                                Start
+                            </button> -->
+                        </div>
+                        <input type="file" id="file-upload" class="file-upload" multiple>
+                    </div>
                 </div>
             </div>
-
+            
         </section>
     </main>
 
@@ -141,24 +164,30 @@
     function callConvert() {
     const fileInput = document.getElementById('file-upload');
     const formData = new FormData();
+    const loading = document.getElementsByClassName('loader')[0];
 
     // Append each selected file to the FormData object
     for (let i = 0; i < fileInput.files.length; i++) {
         formData.append('images', fileInput.files[i]); // Append file with the key 'images'
     }
 
+    loading.style.display = 'block';
     $.ajax({
         url: '/convert',  // Flask route
         type: 'POST',     // POST request to send data
         data: formData,
         contentType: false, // Set content type to false to avoid jQuery setting it
         processData: false, // Prevent jQuery from transforming the data into a query string
+        
         success: function(response) {
             console.log('Response from server:', response);  // Log server response
-            alert(response);  // Show alert with server response
+            loading.style.display = 'none';
+            // Hiển thị dữ liệu đầu ra trên trang
+            document.getElementById('output-text').innerHTML = response;
         },
         error: function(error) {
             console.log('Error:', error);  // Log any errors
+            document.getElementById('output-text').innerHTML = 'Something went wrong, Please try again!';
         }
     });
 }

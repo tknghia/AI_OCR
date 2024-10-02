@@ -38,10 +38,10 @@ def extract_image_segments(cv_image):
         bottom_right = box[1]  # Bottom-right corner
 
         # Get x and y coordinates
-        x_min = int(top_left[0])
-        x_max = int(bottom_right[0])
-        y_min = int(top_left[1])
-        y_max = int(bottom_right[1])
+        x_min = int(top_left[0]) - 4
+        x_max = int(bottom_right[0]) + 4
+        y_min = int(top_left[1]) - 4
+        y_max = int(bottom_right[1]) + 4
 
         # Crop the region of interest (ROI)
         roi = cv_image[y_min:y_max, x_min:x_max]
