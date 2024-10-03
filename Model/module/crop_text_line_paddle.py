@@ -26,8 +26,6 @@ def extract_image_segments(cv_image):
         top_left = (int(box[0][0][0]), int(box[0][0][1]))  # Top-left corner
         bottom_right = (int(box[0][2][0]), int(box[0][2][1]))  # Bottom-right corner
 
-        # Draw rectangle around the detected text (optional)
-        cv2.rectangle(cv_image, top_left, bottom_right, (0, 255, 0), 2)
 
         # Append bounding box coordinates and text
         bounding_boxes.append((top_left, bottom_right, text, score))
@@ -38,10 +36,10 @@ def extract_image_segments(cv_image):
         bottom_right = box[1]  # Bottom-right corner
 
         # Get x and y coordinates
-        x_min = int(top_left[0]) - 4
-        x_max = int(bottom_right[0]) + 4
-        y_min = int(top_left[1]) - 4
-        y_max = int(bottom_right[1]) + 4
+        x_min = int(top_left[0]) - 8
+        x_max = int(bottom_right[0]) + 8
+        y_min = int(top_left[1]) - 8
+        y_max = int(bottom_right[1]) + 8
 
         # Crop the region of interest (ROI)
         roi = cv_image[y_min:y_max, x_min:x_max]

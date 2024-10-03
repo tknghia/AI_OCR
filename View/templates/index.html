@@ -60,7 +60,7 @@
                     <div class="upload-box">
 
                         <h3>Result:</h3>
-                        <p class="content_upload" id="output-text">Your text will be here.</p>
+                        <div class="content_upload" id="output-text">Your text will be here.</div>
                         <div class="loader"></div>
                         <div class="button-container">
                             <!-- <button type="button" class="file-upload-btn"
@@ -71,6 +71,7 @@
                                 Start
                             </button> -->
                         </div>
+                        <button type="button" class="file-upload-btn" id="btn_doc" onclick="downloadAsDoc()">Download as .doc</button>
                         <input type="file" id="file-upload" class="file-upload" multiple>
                     </div>
                 </div>
@@ -182,8 +183,10 @@
         success: function(response) {
             console.log('Response from server:', response);  // Log server response
             loading.style.display = 'none';
+            const modifiedResponse = response.replace(/\n/g,'<br>');
+            console.log(modifiedResponse)
             // Hiển thị dữ liệu đầu ra trên trang
-            document.getElementById('output-text').innerHTML = response;
+            document.getElementById('output-text').innerHTML = modifiedResponse;
         },
         error: function(error) {
             console.log('Error:', error);  // Log any errors
@@ -192,7 +195,46 @@
     });
 }
 
+function downloadAsDoc() {
+        const content = document.getElementById('output-text').innerText;
+        const loading = document.getElementsByClassName('loader')[0];
+        loading.style.display = 'block';
 
+        $.ajax({
+            url: '/download',
+            type: 'POST',
+            data: JSON.stringify({ content: content }),
+            contentType: 'application/json',
+            processData: false,
+            xhrFields: {
+                responseType: 'blob' // Important
+            },
+            success: function(blob) {
+                console.log('File received');
+                loading.style.display = 'none';
+                
+                // Tạo URL cho blob
+                var url = window.URL.createObjectURL(blob);
+                
+                // Tạo link tạm thời và kích hoạt để tải xuống
+                var a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'processed_content.doc';
+                document.body.appendChild(a);
+                a.click();
+                
+                // Dọn dẹp
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error:', textStatus, errorThrown);
+                loading.style.display = 'none';
+                document.getElementById('output-text').innerHTML = 'Something went wrong, Please try again!';
+            }
+        });
+    }
 </script>
 
 </html>

@@ -180,6 +180,7 @@ nav ul li a {
     margin-bottom: 20px;
     /* ======================================================= */
     display: flex;
+    flex-direction:column
     flex-wrap: wrap;
     justify-content: flex-start;
 }
@@ -272,6 +273,8 @@ p.content_upload.pdf-file .file-info {
 .file-info span {
     align-items: flex-start;
 }
+
+
 
 
 /* ============================ Footer ============================ */
