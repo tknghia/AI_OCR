@@ -18,16 +18,37 @@ sys.path.append(project_root)
 from Model.module import vietocr_module as vietocr_module
 from Model.module import crop_text_line_paddle as segmentsPaddle
 
-# MongoDB setup
-MONGO_URI = "mongodb+srv://user:ocrdeeplearning@ocr.83apy.mongodb.net/"
-client = MongoClient(MONGO_URI)
-db = client['TestingMongoDB']
-collection = db['TestingMongoDB']
-db_cccd = client['CCCD']
-collection_cccd = db_cccd['CCCD']
-log_collection = db_cccd['Logs']
+
+class MongoController:
+    def __init__(self):
+        # MongoDB setup
+        MONGO_URI = "mongodb+srv://user:ocrdeeplearning@ocr.83apy.mongodb.net/"
+        self.client = MongoClient(MONGO_URI)
+        self.db = self.client['TestingMongoDB']
+        self.collection = self.db['TestingMongoDB']
+        self.db_cccd = self.client['CCCD']
+        self.collection_cccd = self.db_cccd['CCCD']
+        self.log_collection = self.db_cccd['Logs']
+
+    def log_predictions(self, predictions, upload_time):
+        try:
+            # Log predictions to MongoDB
+            mongo_log_entry = {"upload_time": upload_time, "predictions": predictions}
+            self.log_collection.insert_one(mongo_log_entry)
+            self.collection.insert_one({"predictions": predictions})
+
+            # If CCCD is detected, log additional info
+            if "CĂN CƯỚC CÔNG DÂN" in predictions:
+                extracted_info = ImageController.extract_info(predictions)
+                self.collection_cccd.insert_one({"cccd": extracted_info})
+
+        except Exception as e:
+            print(f"Error writing to MongoDB: {e}")
+
 
 class ImageController:
+    mongo_controller = MongoController()  # Initialize MongoController
+
     @staticmethod
     def convert_images(files):
         all_predictions = []
@@ -73,17 +94,6 @@ class ImageController:
 
         return '\n'.join(all_predictions)
 
-    @staticmethod
-    def extract_info(data):
-        patterns = {
-            "Họ và tên": r'Họ và tên / Full name:\s*(.+)',
-            "Số căn cước": r'Số / No\.:\s*(\d+)',
-            "Ngày sinh": r'Ngày sinh / Date of birth:\s*(\d{2}/\d{2}/\d{4})',
-            "Giới tính": r'Giới tính / Sex:\s*(\w+)'
-        }
-        return {key: re.search(pattern, data).group(1) if re.search(pattern, data) else None 
-                for key, pattern in patterns.items()}
-
     def process_images(self, files):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
@@ -97,17 +107,22 @@ class ImageController:
         with open(log_file_path, "a", encoding='utf-8') as log_file:
             log_file.write("\n".join(log_entries) + "\n")
 
-        # Log to MongoDB
-        mongo_log_entry = {"upload_time": upload_time, "predictions": predictions}
-        try:
-            log_collection.insert_one(mongo_log_entry)
-            collection.insert_one({"predictions": predictions})
-            if "CĂN CƯỚC CÔNG DÂN" in predictions:
-                collection_cccd.insert_one({"cccd": self.extract_info(predictions)})
-        except Exception as e:
-            print(f"Error writing to MongoDB: {e}")
+        # Use MongoController to log predictions
+        self.mongo_controller.log_predictions(predictions, upload_time)
 
         return predictions
+
+    @staticmethod
+    def extract_info(data):
+        patterns = {
+            "Họ và tên": r'Họ và tên / Full name:\s*(.+)',
+            "Số căn cước": r'Số / No\.:\s*(\d+)',
+            "Ngày sinh": r'Ngày sinh / Date of birth:\s*(\d{2}/\d{2}/\d{4})',
+            "Giới tính": r'Giới tính / Sex:\s*(\w+)'
+        }
+        return {key: re.search(pattern, data).group(1) if re.search(pattern, data) else None 
+                for key, pattern in patterns.items()}
+
 
 
 class FileController:
