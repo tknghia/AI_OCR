@@ -1,3 +1,5 @@
 /View/myenv
 myenv
 /Model/data/my_model.pth
+/Logs
+/output_images

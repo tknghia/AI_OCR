@@ -60,7 +60,7 @@
                     <div class="upload-box">
 
                         <h3>Result:</h3>
-                        <div class="content_upload" id="output-text">Your text will be here.</div>
+                        <div class="content_upload" id="output-text" contenteditable="true">Your text will be here.</div>
                         <div class="loader"></div>
                         <div class="button-container">
                             <!-- <button type="button" class="file-upload-btn"
@@ -71,7 +71,11 @@
                                 Start
                             </button> -->
                         </div>
-                        <button type="button" class="file-upload-btn" id="btn_doc" onclick="downloadAsDoc()">Download as .doc</button>
+                        <div style="display:flex;gap:2px">
+
+                            <button type="button" class="file-upload-btn" id="btn_doc" onclick="downloadAsDoc()">Download as .doc</button>
+                            <button type="button" class="file-upload-btn" id="btn_doc" onclick="saveToDataset()">Save</button>
+                        </div>
                         <input type="file" id="file-upload" class="file-upload" multiple>
                     </div>
                 </div>
@@ -193,6 +197,25 @@
             document.getElementById('output-text').innerHTML = 'Something went wrong, Please try again!';
         }
     });
+}
+
+function saveToDataset(){
+    let new_content = document.getElementById('output-text').innerHTML;
+let labelsArray = new_content.split('<br>');
+
+$.ajax({
+    url: '/save',
+    type: 'POST',
+    data: JSON.stringify({ labels: labelsArray }),
+    contentType: 'application/json',
+    processData: false,
+    success: function(response) {
+        console.log('Data saved successfully');
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+        console.log('Error:', textStatus, errorThrown);
+    }
+});
 }
 
 function downloadAsDoc() {
