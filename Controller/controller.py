@@ -8,7 +8,9 @@ from datetime import datetime
 from io import BytesIO
 from pymongo import MongoClient
 from flask import send_file, jsonify
-
+from bson.objectid import ObjectId
+from docx import Document
+from docx.shared import Inches
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -29,18 +31,39 @@ class MongoController:
         self.db_cccd = self.client['CCCD']
         self.collection_cccd = self.db_cccd['CCCD']
         self.log_collection = self.db_cccd['Logs']
+    
+    def select_prediction_by_id(self, id):
+        try:
+            # Convert the string ID to an ObjectId
+            object_id = ObjectId(id)
+            
+            # Find the document in the CCCD collection using the _id
+            result = self.collection.find_one({"_id": object_id})
+            
+            if result:
+                return result
+            else:
+                return f"No prediction found with id: {id}"
+
+        except Exception as e:
+            # Log the error and return a meaningful error message
+            print(f"Error while retrieving prediction with id {id}: {e}")
+            return f"Error while retrieving prediction: {e}"
 
     def log_predictions(self, predictions, upload_time):
         try:
             # Log predictions to MongoDB
             mongo_log_entry = {"upload_time": upload_time, "predictions": predictions}
             self.log_collection.insert_one(mongo_log_entry)
-            self.collection.insert_one({"predictions": predictions})
+            result_prediction=self.collection.insert_one({"predictions": predictions})
 
             # If CCCD is detected, log additional info
             if "CĂN CƯỚC CÔNG DÂN" in predictions:
                 extracted_info = ImageController.extract_info(predictions)
                 self.collection_cccd.insert_one({"cccd": extracted_info})
+            inserted_document = self.collection.find_one({"_id": result_prediction.inserted_id})
+
+            return str(inserted_document["_id"])
 
         except Exception as e:
             print(f"Error writing to MongoDB: {e}")
@@ -108,9 +131,12 @@ class ImageController:
             log_file.write("\n".join(log_entries) + "\n")
 
         # Use MongoController to log predictions
-        self.mongo_controller.log_predictions(predictions, upload_time)
-
-        return predictions
+        prediction_id=self.mongo_controller.log_predictions(predictions, upload_time)
+        print(prediction_id)
+        return  jsonify({
+        'predictions': predictions,
+        'prediction_id': prediction_id
+    })
 
     @staticmethod
     def extract_info(data):
@@ -125,7 +151,91 @@ class ImageController:
 
 
 
+import difflib
+from io import BytesIO
+from flask import jsonify, send_file
+import os
+
 class FileController:
+    def __init__(self):
+        self.mongo_controller = MongoController()
+
+    def save_comparison_to_word(self, comparison_results, avg_simple_similarity, avg_levenshtein_similarity, file_path):
+    # Mở tệp DOCX hiện có hoặc tạo mới nếu không tồn tại
+        if os.path.exists(file_path):
+            doc = Document(file_path)  # Mở tệp nếu đã tồn tại
+        else:
+            doc = Document()  # Tạo tài liệu mới nếu không có
+
+        # Đếm số mẫu hiện tại dựa trên số tiêu đề cấp 1
+        sample_count = len([p for p in doc.paragraphs if p.style.name == 'Heading 1'])
+
+        # Tạo tiêu đề cấp 1 cho mẫu mới
+        doc.add_heading(f'Samples - {sample_count + 1}', level=1)
+
+        # Thêm thời gian tải lên với tiêu đề cấp 4
+        upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        doc.add_heading(f'Upload Time: {upload_time}', level=4)  # Thêm thời gian tải lên với tiêu đề cấp 4
+
+        # Tạo bảng với 4 cột
+        table = doc.add_table(rows=1, cols=4)
+        table.style = 'Table Grid'  # Đặt kiểu cho bảng
+
+        # Thêm tiêu đề cho các cột
+        hdr_cells = table.rows[0].cells
+        hdr_cells[0].text = 'Prediction'
+        hdr_cells[1].text = 'Correct line'
+        hdr_cells[2].text = 'Simple Similarity'
+        hdr_cells[3].text = 'Levenshtein Similarity'
+
+        # Định dạng tiêu đề cột
+        for cell in hdr_cells:
+            cell.bold = True  # Bôi đậm chữ
+            cell.paragraphs[0].alignment = 1  # Canh giữa
+
+        # Thêm dữ liệu vào bảng
+        for result in comparison_results:
+            row_cells = table.add_row().cells
+            row_cells[0].text = str(result['wrong'])  # Chuyển đổi thành chuỗi nếu cần
+            row_cells[1].text = str(result['correct'])
+            row_cells[2].text = f"{result['simple_similarity']:.2%}"
+            row_cells[3].text = f"{result['levenshtein_similarity']:.2%}"
+
+            # Định dạng các ô dữ liệu
+            for cell in row_cells:
+                cell.paragraphs[0].alignment = 1  # Canh giữa
+
+        # Thêm các chỉ số trung bình
+        doc.add_paragraph(f"Average Simple Similarity: {avg_simple_similarity:.2%}")
+        doc.add_paragraph(f"Average Levenshtein Similarity: {avg_levenshtein_similarity:.2%}")
+
+        # Lưu tệp vào đường dẫn đã chỉ định
+        doc.save(file_path)
+
+        return file_path
+
+    @staticmethod
+    def levenshtein_similarity(s1, s2):
+        return difflib.SequenceMatcher(None, s1, s2).ratio()
+
+    @staticmethod
+    def simple_string_similarity(s1, s2):
+        return sum(c1 == c2 for c1, c2 in zip(s1, s2)) / max(len(s1), len(s2))
+
+    @classmethod
+    def compare_labels(cls, wrong_labels, labels):
+        results = []
+        for wrong, correct in zip(wrong_labels, labels):
+            simple_similarity = cls.simple_string_similarity(wrong, correct)
+            levenshtein_similarity_value = cls.levenshtein_similarity(wrong, correct)
+            results.append({
+                'wrong': wrong,
+                'correct': correct,
+                'simple_similarity': simple_similarity,
+                'levenshtein_similarity': levenshtein_similarity_value
+            })
+        return results
+
     @staticmethod
     def download_content(content):
         processed_content = content.upper()
@@ -137,11 +247,10 @@ class FileController:
                          as_attachment=True,
                          download_name='processed_content.doc',
                          mimetype='application/msword')
-
-    @staticmethod
-    def save_labels(labels):
+    
+    def save_labels(self, labels, result_id):
         log_file_path = os.path.join(project_root, "Logs", "train.txt")
-        
+
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
         
         with open(log_file_path, 'r', encoding='utf-8') as file:
@@ -151,5 +260,20 @@ class FileController:
 
         with open(log_file_path, "a", encoding='utf-8') as log_file:
             log_file.write("\n".join(new_entries) + "\n")
+        
+        old_result = self.mongo_controller.select_prediction_by_id(result_id)
+        wrong_labels = old_result['predictions'].split("\n")
+        comparison_results = self.compare_labels(wrong_labels, labels)
 
-        return jsonify({"status": "success"}), 200
+
+        # Tính trung bình phần trăm đúng
+        avg_simple_similarity = sum(r['simple_similarity'] for r in comparison_results) / len(comparison_results)
+        avg_levenshtein_similarity = sum(r['levenshtein_similarity'] for r in comparison_results) / len(comparison_results)
+
+        self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity,"Logs.docx")
+
+        return jsonify({
+            "status": "success",
+            "avg_simple_similarity": avg_simple_similarity,
+            "avg_levenshtein_similarity": avg_levenshtein_similarity
+        }), 200

@@ -29,7 +29,9 @@ def download():
 @app.route('/save', methods=['POST'])
 def save():
     labels = request.json.get('labels', [])
-    return file_controller.save_labels(labels)
+    result_id = request.json.get('result_id', '')
+    print(result_id)
+    return file_controller.save_labels(labels,result_id)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5001, debug=True)

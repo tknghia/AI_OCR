@@ -58,7 +58,7 @@
 
                 <div class="upload-section">
                     <div class="upload-box">
-
+                        <div class="result_id" style="display: none;"></div>
                         <h3>Result:</h3>
                         <div class="content_upload" id="output-text" contenteditable="true">Your text will be here.</div>
                         <div class="loader"></div>
@@ -102,6 +102,9 @@
 </body>
 
 <script>
+    const result_id=document.querySelector(".result_id")
+
+    console.log(result_id)
     // Lắng nghe sự kiện thay đổi trên input file
     document.getElementById('file-upload').addEventListener('change', function (event) {
         const fileInput = event.target;
@@ -110,7 +113,6 @@
         const uploadIcon = uploadBox.querySelector('.img_upload');
         const uploadContent = uploadBox.querySelector('.content_upload');
         const convertBtn = document.getElementById('convert-btn');
-
         // Xóa nội dung cũ
         uploadIcon.style.display = 'none';
         uploadContent.innerHTML = '';
@@ -170,7 +172,7 @@
     const fileInput = document.getElementById('file-upload');
     const formData = new FormData();
     const loading = document.getElementsByClassName('loader')[0];
-
+    let result_id=document.querySelector(".result_id")
     // Append each selected file to the FormData object
     for (let i = 0; i < fileInput.files.length; i++) {
         formData.append('images', fileInput.files[i]); // Append file with the key 'images'
@@ -187,7 +189,8 @@
         success: function(response) {
             console.log('Response from server:', response);  // Log server response
             loading.style.display = 'none';
-            const modifiedResponse = response.replace(/\n/g,'<br>');
+            result_id.innerHTML=response.prediction_id
+            const modifiedResponse = response.predictions.replace(/\n/g,'<br>');
             console.log(modifiedResponse)
             // Hiển thị dữ liệu đầu ra trên trang
             document.getElementById('output-text').innerHTML = modifiedResponse;
@@ -199,24 +202,29 @@
     });
 }
 
-function saveToDataset(){
+function saveToDataset() {
     let new_content = document.getElementById('output-text').innerHTML;
-let labelsArray = new_content.split('<br>');
+    let labelsArray = new_content.split('<br>');
+    
+    // Retrieve the result_id from the element where it's displayed
+    let result_id = document.querySelector('.result_id').innerText
 
-$.ajax({
-    url: '/save',
-    type: 'POST',
-    data: JSON.stringify({ labels: labelsArray }),
-    contentType: 'application/json',
-    processData: false,
-    success: function(response) {
-        console.log('Data saved successfully');
-    },
-    error: function(jqXHR, textStatus, errorThrown) {
-        console.log('Error:', textStatus, errorThrown);
-    }
-});
+    // Send the labels and result_id in the POST request
+    $.ajax({
+        url: '/save', // Your Flask route
+        type: 'POST',
+        data: JSON.stringify({ labels: labelsArray, result_id: result_id }), // Include both labels and result_id
+        contentType: 'application/json',
+        processData: false,
+        success: function(response) {
+            console.log('Data saved successfully');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('Error:', textStatus, errorThrown);
+        }
+    });
 }
+
 
 function downloadAsDoc() {
         const content = document.getElementById('output-text').innerText;
