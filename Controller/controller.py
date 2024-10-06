@@ -87,11 +87,11 @@ class ImageController:
             if height > 55:
                 # Perform segmentation and OCR prediction
                 arr = segmentsPaddle.extract_image_segments(cv_image)
-
-                output_dir = "output_images"
                 current_dir = os.path.dirname(os.path.abspath(__file__))
-                beginNumber = len(os.listdir(os.path.join(os.path.dirname(current_dir), output_dir)))
+                output_dir = os.path.join(os.path.dirname(current_dir),'Model','dataset','output_images')
                 os.makedirs(output_dir, exist_ok=True)
+                beginNumber = len([f for f in os.listdir(output_dir) if not f.endswith('.txt')])
+                
                 
                 for i, img in enumerate(arr):
                     # Create filename
@@ -249,17 +249,26 @@ class FileController:
                          mimetype='application/msword')
     
     def save_labels(self, labels, result_id):
-        log_file_path = os.path.join(project_root, "Logs", "train.txt")
+        log_file_path = os.path.join(project_root, "Model","dataset","output_images", "train.txt")
+        test_file_path = os.path.join(project_root, "Model","dataset","output_images", "test.txt")
 
-        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+        # Kiểm tra xem thư mục của file có tồn tại không, nếu không thì tạo
         
-        with open(log_file_path, 'r', encoding='utf-8') as file:
-            existing_lines_count = len(file.readlines())
+        # Kiểm tra nếu file tồn tại
+        if os.path.exists(log_file_path):
+            # Mở file ở chế độ đọc nếu file tồn tại
+            with open(log_file_path, 'r', encoding='utf-8') as file:
+                existing_lines_count = len(file.readlines())
+        else:
+            # Nếu file không tồn tại, đặt số dòng ban đầu là 0 hoặc thực hiện hành động khác
+            existing_lines_count = 0
 
         new_entries = [f"{i}.png\t{label}" for i, label in enumerate(labels, start=existing_lines_count)]
-
+        
         with open(log_file_path, "a", encoding='utf-8') as log_file:
             log_file.write("\n".join(new_entries) + "\n")
+        with open(test_file_path, "a", encoding='utf-8') as test_file:
+            test_file.write("\n".join(new_entries) + "\n")
         
         old_result = self.mongo_controller.select_prediction_by_id(result_id)
         wrong_labels = old_result['predictions'].split("\n")

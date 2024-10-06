@@ -1,0 +1,230 @@
+d:\PJ\AI_OCR\Model\dataset\dataset\42.png	Lê Lợi, Thạch An, Cao Bằng
+d:\PJ\AI_OCR\Model\dataset\dataset\43.png	Nơi thường trú / Place of residence: Thôn 8
+d:\PJ\AI_OCR\Model\dataset\dataset\45.png	Nam Dong, Cư jút, Đắk Nông
+d:\PJ\AI_OCR\Model\dataset\dataset\46.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset\47.png	Số/No.: 048203006623
+d:\PJ\AI_OCR\Model\dataset\dataset\48.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset\49.png	NGUYỄN THÀNH TUẤN
+d:\PJ\AI_OCR\Model\dataset\dataset\50.png	Ngày sinh / Date of birth: 05/01/2003
+d:\PJ\AI_OCR\Model\dataset\dataset\51.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\dataset\52.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset\53.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset\54.png	Hòa Châu, Hòa Vang, Đà Nẵng
+d:\PJ\AI_OCR\Model\dataset\dataset\55.png	Nơi thường trú / Place of residence: 56 Bình Thái 2,
+d:\PJ\AI_OCR\Model\dataset\dataset\56.png	Tổ 48, Hòa Thọ Đông, Cẩm Lệ, Đà Nẵng
+d:\PJ\AI_OCR\Model\dataset\dataset\101.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset\102.png	Số/No.: 058304000867
+d:\PJ\AI_OCR\Model\dataset\dataset\103.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset\104.png	TRƯỢNG HÒA XUÂN DIỆU
+d:\PJ\AI_OCR\Model\dataset\dataset\105.png	Ngày sinh / Date of birth: 28/10/2004
+d:\PJ\AI_OCR\Model\dataset\dataset\106.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\dataset\107.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset\108.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset\109.png	TT. Phước Dân, Ninh Phước, Ninh Thuận
+d:\PJ\AI_OCR\Model\dataset\dataset\110.png	Nơi thường trú / Place of residence: Khu Phố Bàu Trúc
+d:\PJ\AI_OCR\Model\dataset\dataset\111.png	TT. Phước Dân, Ninh Phước, Ninh Thuận
+d:\PJ\AI_OCR\Model\dataset\dataset\112.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset\113.png	Số/No.: 042205007349
+d:\PJ\AI_OCR\Model\dataset\dataset\114.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset\115.png	NGUYỄN ĐỨC TÀI
+d:\PJ\AI_OCR\Model\dataset\dataset\116.png	Ngày sinh / Date of birth: 29/07/2005
+d:\PJ\AI_OCR\Model\dataset\dataset\155.png	Trung Kiên, Yên Lạc, Vĩnh Phúc
+d:\PJ\AI_OCR\Model\dataset\dataset2\p126.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset2\p127.png	Số/No.: 080198001667
+d:\PJ\AI_OCR\Model\dataset\dataset2\p128.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p129.png	HUỲNH THỊ THÙY LINH
+d:\PJ\AI_OCR\Model\dataset\dataset2\p130.png	Ngày sinh / Date of birth: 02/02/1998
+d:\PJ\AI_OCR\Model\dataset\dataset2\p131.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\dataset2\p132.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset2\p133.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p134.png	Phường 1, Thành phố Tân An, Long An
+d:\PJ\AI_OCR\Model\dataset\dataset2\p135.png	Nơi thường trú / Place of residence: 43 Hàng Bạc
+d:\PJ\AI_OCR\Model\dataset\dataset2\p136.png	Phường 1, Thành phố Tân An, Long An
+d:\PJ\AI_OCR\Model\dataset\dataset2\p137.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset2\p138.png	Số/No.: 079188006222
+d:\PJ\AI_OCR\Model\dataset\dataset2\p139.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p140.png	NGUYỄN THỊ LAN ANH
+d:\PJ\AI_OCR\Model\dataset\dataset2\p141.png	Ngày sinh / Date of birth: 19/05/1988
+d:\PJ\AI_OCR\Model\dataset\dataset2\p142.png	Giới tính / Sex: Nữ Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset2\p143.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p144.png	Mỏ Cày Bắc, Bến Tre
+d:\PJ\AI_OCR\Model\dataset\dataset2\p145.png	Nơi thường trú / Place of residence: 81 An Dương
+d:\PJ\AI_OCR\Model\dataset\dataset2\p146.png	Vương,Phường 08, Quận 5, Hồ Chí Minh
+d:\PJ\AI_OCR\Model\dataset\dataset2\p147.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset2\p148.png	Số/No.: 001179017290
+d:\PJ\AI_OCR\Model\dataset\dataset2\p149.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p150.png	NGUYỄN CHUNG THỦY
+d:\PJ\AI_OCR\Model\dataset\dataset2\p151.png	Ngày sinh / Date of birth: 29/08/1979
+d:\PJ\AI_OCR\Model\dataset\dataset2\p152.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\dataset2\p153.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset2\p154.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p155.png	Đình Bảng,Thị xã Từ Sơn, Bắc Ninh
+d:\PJ\AI_OCR\Model\dataset\dataset2\p156.png	Nơi thường trú / Place of residence: Số 7-P9, Tổ 13
+d:\PJ\AI_OCR\Model\dataset\dataset2\p157.png	Tân Mai, Hoàng Mai, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\dataset2\p158.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\dataset2\p159.png	Số/No.: 001053019511
+d:\PJ\AI_OCR\Model\dataset\dataset2\p160.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p161.png	NGUYỄN HỮU NHÂN
+d:\PJ\AI_OCR\Model\dataset\dataset2\p162.png	Ngày sinh / Date of birth: 18/09/1953
+d:\PJ\AI_OCR\Model\dataset\dataset2\p163.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\dataset2\p164.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\dataset2\p165.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\dataset2\p166.png	Tân Ước, Thanh Oai, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\dataset2\p167.png	Nơi thường trú / Place of residence: 35 Hàng Bạc
+d:\PJ\AI_OCR\Model\dataset\dataset2\p168.png	Hàng Bạc, Hoàn Kiếm, Hà nội
+d:\PJ\AI_OCR\Model\dataset\newdataset\q1.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q2.png	Số/No.: 027191004716
+d:\PJ\AI_OCR\Model\dataset\newdataset\q3.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q4.png	NGUYỄN THỊ HƯƠNG
+d:\PJ\AI_OCR\Model\dataset\newdataset\q5.png	Ngày sinh / Date of birth: 06/11/1991
+d:\PJ\AI_OCR\Model\dataset\newdataset\q6.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\newdataset\q7.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q8.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q9.png	Yên Trung, Yên Phong, Bắc Ninh
+d:\PJ\AI_OCR\Model\dataset\newdataset\q10.png	Nơi thường trú / Place of residence:Thôn Ấp Đồn
+d:\PJ\AI_OCR\Model\dataset\newdataset\q11.png	Yên Trung, Yên Phong, Bắc Ninh
+d:\PJ\AI_OCR\Model\dataset\newdataset\q12.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q13.png	Số/No.: 060203003122
+d:\PJ\AI_OCR\Model\dataset\newdataset\q14.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q15.png	NGUYỄN XUÂN TÙNG
+d:\PJ\AI_OCR\Model\dataset\newdataset\q16.png	Ngày sinh / Date of birth: 28/05/2003
+d:\PJ\AI_OCR\Model\dataset\newdataset\q17.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q18.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q19.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q20.png	Mũi Né, Thành phố Phan Thiết, Bình Thuận
+d:\PJ\AI_OCR\Model\dataset\newdataset\q21.png	Nơi thường trú / Place of residence: Tổ 10, Khu Phố 6
+d:\PJ\AI_OCR\Model\dataset\newdataset\q22.png	Mũi Né, Thành phố Phan Thiết, Bình Thuận
+d:\PJ\AI_OCR\Model\dataset\newdataset\q23.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q24.png	Số/No.: 077199003304
+d:\PJ\AI_OCR\Model\dataset\newdataset\q25.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q26.png	LÊ NHỰT HOÀI THU
+d:\PJ\AI_OCR\Model\dataset\newdataset\q27.png	Ngày sinh / Date of birth: 13/09/1999
+d:\PJ\AI_OCR\Model\dataset\newdataset\q28.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\newdataset\q29.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q30.png	Quê quán / Place of origin: Bà Rịa - Vũng Tàu
+d:\PJ\AI_OCR\Model\dataset\newdataset\q31.png	Nơi thường trú / Place of residence:Ấp An Hòa
+d:\PJ\AI_OCR\Model\dataset\newdataset\q32.png	An Ngãi, Long Điền, Bà Rịa - Vũng Tàu
+d:\PJ\AI_OCR\Model\dataset\newdataset\q33.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q34.png	Số/No.: 089200015551
+d:\PJ\AI_OCR\Model\dataset\newdataset\q35.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q36.png	LÝ MINH NGHĨA
+d:\PJ\AI_OCR\Model\dataset\newdataset\q37.png	Ngày sinh / Date of birth: 12/03/2000
+d:\PJ\AI_OCR\Model\dataset\newdataset\q38.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q39.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q40.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q41.png	Châu Phú B, Thành Phố Châu Đốc, An Giang
+d:\PJ\AI_OCR\Model\dataset\newdataset\q42.png	Nơi thường trú / Place of residence:Châu Thới
+d:\PJ\AI_OCR\Model\dataset\newdataset\q43.png	Châu Phú B, Thành Phố Châu Đốc, An Giang
+d:\PJ\AI_OCR\Model\dataset\newdataset\q44.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q45.png	Số/No.: 075301012298
+d:\PJ\AI_OCR\Model\dataset\newdataset\q46.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q47.png	NGUYỄN NGỌC THẢO
+d:\PJ\AI_OCR\Model\dataset\newdataset\q48.png	Ngày sinh / Date of birth: 27/09/2001
+d:\PJ\AI_OCR\Model\dataset\newdataset\q49.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\newdataset\q50.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q51.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q52.png	Phường 4, Thị xã Cai Lậy, Tiền Giang
+d:\PJ\AI_OCR\Model\dataset\newdataset\q53.png	Nơi thường trú / Place of residence:Tổ 7, Ấp 7
+d:\PJ\AI_OCR\Model\dataset\newdataset\q54.png	Xuân Bắc, Xuân Lộc, Đồng Nai
+d:\PJ\AI_OCR\Model\dataset\newdataset\q55.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q56.png	Số/No.: 079200012258
+d:\PJ\AI_OCR\Model\dataset\newdataset\q57.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q58.png	NGUYỄN LONG TUẤN AN
+d:\PJ\AI_OCR\Model\dataset\newdataset\q59.png	Ngày sinh / Date of birth: 14/03/2000
+d:\PJ\AI_OCR\Model\dataset\newdataset\q60.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q61.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\newdataset\q62.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\newdataset\q63.png	Quang Vinh, Thành Phố Biên Hòa, Đồng Nai
+d:\PJ\AI_OCR\Model\dataset\newdataset\q64.png	Nơi thường trú / Place of residence:125/28 Trân Bình
+d:\PJ\AI_OCR\Model\dataset\newdataset\q65.png	Trọng, Phường 02, Quận 5, Tp. Hồ Chí Minh
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v170.png	Ngày sinh / Date of birth: 15/10/1992
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v171.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v172.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v173.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v174.png	Xuân Đỉnh, Bắc Từ Liêm, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v175.png	Nơi thường trú / Place of residence: 18/9/5, Trần Duy
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v176.png	Hưng, Trung Hòa, Cầu Giấy, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v177.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v178.png	Số / No.: 591240876352
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v179.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v180.png	ĐỖ THỊ NHUNG
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v181.png	Ngày sinh / Date of birth: 28/09/1992
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v182.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v183.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v184.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v185.png	Phú Xuyên, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v186.png	Nơi thường trú / Place of residence:23/5/8, Trường
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v187.png	Chinh, Phú Xuyên, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v188.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v189.png	Số / No.: 639104872361
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v190.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v191.png	NGUYỄN VĂN TUẤN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v192.png	Ngày sinh / Date of birth: 17/11/1987
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v193.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v194.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v195.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v196.png	An Lão, Hải Phòng
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v197.png	Nơi thường trú / Place of residence:21/5/7, Nguyễn
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v198.png	Công Trứ, An Lão, Hải Phòng
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v199.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v200.png	Số / No.: 861294305768
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v201.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v202.png	PHẠM VĂN BÌNH
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v203.png	Ngày sinh / Date of birth: 25/12/1992
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v204.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v205.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v206.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v207.png	Kiến Thụy, Hải Phòng
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v208.png	Nơi thường trú / Place of residence: 19/8/3, Lê Quý
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v209.png	Đôn, Kiến Thụy, Hải Phòng
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v210.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v211.png	Số / No.: 602391748263
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v212.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v213.png	LÊ VĂN NAM
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v214.png	Ngày sinh / Date of birth: 01/09/1991
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v215.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v216.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v217.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v218.png	Bình Giang, Hải Dương
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v219.png	Nơi thường trú / Place of residence: 17/5/3, Trần Hưng
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v220.png	Đạo, Bình Giang, Hải Dương
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v221.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v222.png	Số / No.: 478205391268
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v223.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v224.png	NGUYỄN VĂN QUÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v225.png	Ngày sinh / Date of birth: 08/03/1993
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v226.png	Giới tính / Sex: Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v227.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v228.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v229.png	Đông Anh, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v230.png	Nơi thường trú / Place of residence: 20/4/2 Ngách 5,
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v231.png	Nguyễn Khuyến, Đông Anh, Hà Nội
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v232.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v233.png	Số / No.: 596271430958
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v234.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v235.png	VŨ THỊ NGỌC
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v236.png	Ngày sinh / Date of birth: 15/11/1991
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v237.png	Giới tính / Sex: Nữ
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v238.png	Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v239.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v240.png	Cẩm Phả, Quảng Ninh
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v241.png	Nơi thường trú / Place of residence:22/9/2 Ngách 6,
+d:\PJ\AI_OCR\Model\dataset\Van_dataset\v242.png	Nguyễn Văn Linh, Cẩm Phả, Quảng Ninh
+d:\PJ\AI_OCR\Model\dataset\output_images\0.png	CỘNG HÒA Xã HỘI CHÚ NGHĨA VIỆT NaM
+d:\PJ\AI_OCR\Model\dataset\output_images\1.png	Độc lập - Tư do - Hạnh phúc
+d:\PJ\AI_OCR\Model\dataset\output_images\2.png	SOCIALIST REPUBLIC OF VIET NAM
+d:\PJ\AI_OCR\Model\dataset\output_images\3.png	Independence - Freedom - Happiness
+d:\PJ\AI_OCR\Model\dataset\output_images\4.png	CĂN CƯỚC CÔNG DÂN
+d:\PJ\AI_OCR\Model\dataset\output_images\5.png	Citizen / dentity Card /
+d:\PJ\AI_OCR\Model\dataset\output_images\6.png	054202004193
+d:\PJ\AI_OCR\Model\dataset\output_images\7.png	Số/No.:
+d:\PJ\AI_OCR\Model\dataset\output_images\8.png	Họ và tên / Full name:
+d:\PJ\AI_OCR\Model\dataset\output_images\9.png	TRẦN KIÊN NGHĨA
+d:\PJ\AI_OCR\Model\dataset\output_images\10.png	Ngày sinh / Date of birth: 17/01/2002
+d:\PJ\AI_OCR\Model\dataset\output_images\11.png	Giới tính / Sex: Nam  Quốc tịch / Nationality: Việt Nam
+d:\PJ\AI_OCR\Model\dataset\output_images\12.png	Quê quán / Place of origin:
+d:\PJ\AI_OCR\Model\dataset\output_images\13.png	Hòa Quang Nam, Phú Hòa, Phú Yên
+d:\PJ\AI_OCR\Model\dataset\output_images\14.png	Nơi thường trú / Place of residence: Quang Hưng
+d:\PJ\AI_OCR\Model\dataset\output_images\15.png	Cổ của siden: 17/01/2027
+d:\PJ\AI_OCR\Model\dataset\output_images\16.png	Date of expiry
+d:\PJ\AI_OCR\Model\dataset\output_images\17.png	Hòa Quang Nam, Phú Hòa, Phú Yên
