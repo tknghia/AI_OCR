@@ -38,7 +38,7 @@ class MongoController:
             object_id = ObjectId(id)
             
             # Find the document in the CCCD collection using the _id
-            result = self.collection.find_one({"_id": object_id})
+            result = self.log_collection.find_one({"_id": object_id})
             
             if result:
                 return result
@@ -50,64 +50,226 @@ class MongoController:
             print(f"Error while retrieving prediction with id {id}: {e}")
             return f"Error while retrieving prediction: {e}"
 
-    def log_predictions(self, predictions, upload_time):
+    def log_predictions(self, predictions, upload_time,list_images):
         try:
             # Log predictions to MongoDB
-            mongo_log_entry = {"upload_time": upload_time, "predictions": predictions}
-            self.log_collection.insert_one(mongo_log_entry)
+            mongo_log_entry = {"upload_time": upload_time, "predictions": predictions,"list_images":list_images}
+            logs_prediction=self.log_collection.insert_one(mongo_log_entry)
             result_prediction=self.collection.insert_one({"predictions": predictions})
 
             # If CCCD is detected, log additional info
             if "CĂN CƯỚC CÔNG DÂN" in predictions:
                 extracted_info = ImageController.extract_info(predictions)
                 self.collection_cccd.insert_one({"cccd": extracted_info})
-            inserted_document = self.collection.find_one({"_id": result_prediction.inserted_id})
+            inserted_document = self.log_collection.find_one({"_id": logs_prediction.inserted_id})
 
             return str(inserted_document["_id"])
 
         except Exception as e:
             print(f"Error writing to MongoDB: {e}")
 
+    def update_labels(self,object_id, list_labels):
+        try:
+            # Tìm object trong MongoDB với _id đã cho
+            query = {"_id": ObjectId(object_id)}
+            document = self.log_collection.find_one(query)
+
+            if not document:
+                print(f"No document found with id: {object_id}")
+                return
+            
+            # Kiểm tra xem độ dài của list_labels và list_images có bằng nhau không
+            if len(list_labels) != len(document['list_images']):
+                print("Length of list_labels does not match length of list_images")
+                return
+            
+            # Cập nhật label cho từng phần tử trong list_images
+            for i, label in enumerate(list_labels):
+                # Sử dụng cú pháp $set với arrayFilters để cập nhật phần tử trong danh sách
+                self.log_collection.update_one(
+                    {"_id": ObjectId(object_id)},
+                    {"$set": {f"list_images.{i}.label": label}}
+                )
+            
+            print("Labels updated successfully.")
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
 
 class ImageController:
     mongo_controller = MongoController()  # Initialize MongoController
+    # cropped_images_metadata=[]
+    # Hàm giảm độ sáng cho hình quá sáng
+    def reduce_brightness_contrast(image):
+        # Chuyển ảnh sang thang xám (grayscale)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Áp dụng CLAHE để cải thiện chi tiết ảnh sáng quá
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        enhanced_image = clahe.apply(gray_image)
 
-    @staticmethod
-    def convert_images(files):
+        # Giảm độ sáng và tương phản
+        alpha = 0.8  # Giảm tương phản
+        beta = -50   # Giảm độ sáng
+        dark_image = cv2.convertScaleAbs(enhanced_image, alpha=alpha, beta=beta)
+
+        return dark_image
+    
+    # Hàm tăng độ sáng cho hình quá tối
+    def enhance_brightness_contrast(image):
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        # Áp dụng CLAHE để tăng cường chi tiết
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        enhanced_image = clahe.apply(gray_image)
+
+        # Tăng độ sáng và tương phản
+        alpha = 1.5
+        beta = 50
+        bright_image = cv2.convertScaleAbs(enhanced_image, alpha=alpha, beta=beta)
+
+        return bright_image
+
+    # Hàm kiểm tra độ sáng
+    def check_brightness(image):
+        # Chuyển ảnh sang thang xám (grayscale)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Tính giá trị trung bình của các pixel
+        brightness_mean = np.mean(gray_image)
+
+        return brightness_mean
+
+    # Hàm thay đổi độ sáng và tương phản
+    def adjust_image_brightness(image):
+        # Kiểm tra độ sáng trung bình
+        brightness_mean = ImageController.check_brightness(image)
+        
+        # Ngưỡng xác định quá tối hoặc quá sáng
+        too_dark_threshold = 50  # Ngưỡng cho ảnh quá tối
+        too_bright_threshold = 200  # Ngưỡng cho ảnh quá sáng
+
+        # Nếu ảnh quá tối, tăng độ sáng và tương phản
+        if brightness_mean < too_dark_threshold:
+            print("Image is too dark. Increasing brightness...")
+            return ImageController.enhance_brightness_contrast(image)  # Gọi hàm tăng độ sáng
+
+        # Nếu ảnh quá sáng, giảm độ sáng và tương phản
+        elif brightness_mean > too_bright_threshold:
+            print("Image is too bright. Reducing brightness...")
+            return ImageController.reduce_brightness_contrast(image)  # Gọi hàm giảm độ sáng
+        
+        # Nếu độ sáng bình thường, không làm gì
+        else:
+            print("Image brightness is normal.")
+            return image
+        
+
+    def detect_logo_and_rotate(image):
+        # Lấy thư mục hiện tại của file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Tạo đường dẫn tới file logo
+        logo_path = os.path.join(current_dir, '..', 'View', 'static', 'images', 'logo_cccd.png')
+        
+        # Tải ảnh logo tham chiếu
+        logo_ref = cv2.imread(logo_path, 0)  # Tải dưới dạng ảnh xám
+        
+        # Tạo bộ dò SIFT
+        sift = cv2.SIFT_create()
+        
+        # Tìm keypoints và descriptors cho logo tham chiếu
+        kp_ref, des_ref = sift.detectAndCompute(logo_ref, None)
+        
+        def calculate_logo_similarity(img):
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            kp_img, des_img = sift.detectAndCompute(gray, None)
+            
+            if des_img is None:
+                return 0  # Trả về 0 nếu không tìm thấy descriptors
+            
+            bf = cv2.BFMatcher()
+            matches = bf.knnMatch(des_ref, des_img, k=2)
+            
+            good_matches = [m for m, n in matches if m.distance < 0.75 * n.distance]
+            return len(good_matches)
+        
+        def determine_horizontal_orientation(img):
+            height, width = img.shape[:2]
+            if width > height:
+                return img
+            else:
+                return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+        
+        # Đưa ảnh về hướng nằm ngang
+        horizontal_img = determine_horizontal_orientation(image)
+        
+        # Kiểm tra xem có cần xoay 180 độ không
+        original_similarity = calculate_logo_similarity(horizontal_img)
+        rotated_180 = cv2.rotate(horizontal_img, cv2.ROTATE_180)
+        rotated_similarity = calculate_logo_similarity(rotated_180)
+        
+        if rotated_similarity > original_similarity:
+            print("180-degree rotation needed")
+            return rotated_180
+        else:
+            print("No rotation needed")
+            return horizontal_img
+
+    def convert_images(self,files):
         all_predictions = []
-
+        cropped_images_metadata=[]
         # Loop through all uploaded files
         for file in files:
             img = Image.open(file)  # Open the image file directly
 
             # Convert to OpenCV format
             cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+            rotated_image = ImageController.detect_logo_and_rotate(cv_image)
+
+            # Gọi hàm điều chỉnh ánh sáng
+            enhanced_image = ImageController.adjust_image_brightness(rotated_image)
+
             height, width = cv_image.shape[:2]
 
             if height > 55:
                 # Perform segmentation and OCR prediction
-                arr = segmentsPaddle.extract_image_segments(cv_image)
+                arr = segmentsPaddle.extract_image_segments(enhanced_image)
                 current_dir = os.path.dirname(os.path.abspath(__file__))
-                output_dir = os.path.join(os.path.dirname(current_dir),'Model','dataset','output_images')
+                output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
                 os.makedirs(output_dir, exist_ok=True)
-                beginNumber = len([f for f in os.listdir(output_dir) if not f.endswith('.txt')])
-                
-                
-                for i, img in enumerate(arr):
-                    # Create filename
-                    filename = f"{beginNumber + i}.png"
+
+                # Save each cropped segment using its unique ID as the filename
+                for segment in arr:
+                    # Extract ROI and segment ID
+                    segment_id = segment["id"]
+                    roi = segment["roi"]
+
+                    # Create a timestamp for sorting purposes
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+
+                    # Create the filename using the timestamp and unique segment ID
+                    filename = f"{timestamp}_{segment_id}.png"
                     filepath = os.path.join(output_dir, filename)
-                    pil_img = Image.fromarray(np.uint8(img))
+
+                    # Save the image using PIL
+                    pil_img = Image.fromarray(np.uint8(roi))
                     pil_img.save(filepath)
+                    cropped_images_metadata.append({
+                        "filename": filename,
+                        "label": None  # Label will be assigned in the /save endpoint
+                    })
 
                 print(f"Saved {len(arr)} images to folder {output_dir}")
 
-                for img_segment in arr:
-                    np_image = np.asarray(img_segment)
-                    image_rgb = cv2.cvtColor(np_image, cv2.COLOR_BGR2RGB)
-                    image_pil = Image.fromarray(image_rgb)
-                    str_pred = vietocr_module.vietOCR_prediction(image_pil)
-                    all_predictions.append(str_pred)
+                    # Perform OCR prediction on each segment and append results
+                for segment in arr:
+                        np_image = np.asarray(segment["roi"])
+                        image_rgb = cv2.cvtColor(np_image, cv2.COLOR_BGR2RGB)
+                        image_pil = Image.fromarray(image_rgb)
+                        str_pred = vietocr_module.vietOCR_prediction(image_pil)
+                        all_predictions.append(str_pred)
             else:
                 # Use cv_image directly if height <= 55px
                 image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
@@ -115,13 +277,13 @@ class ImageController:
                 str_pred = vietocr_module.vietOCR_prediction(image_pil)
                 all_predictions.append(str_pred)
 
-        return '\n'.join(all_predictions)
+        return '\n'.join(all_predictions),cropped_images_metadata
 
     def process_images(self, files):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
 
-        predictions = self.convert_images(files)
+        predictions,list_crop_images = self.convert_images(files)
 
         # Log to file
         log_file_path = os.path.join(project_root, "Logs", "upload_logs.txt")
@@ -131,8 +293,7 @@ class ImageController:
             log_file.write("\n".join(log_entries) + "\n")
 
         # Use MongoController to log predictions
-        prediction_id=self.mongo_controller.log_predictions(predictions, upload_time)
-        print(prediction_id)
+        prediction_id=self.mongo_controller.log_predictions(predictions,upload_time,list_crop_images)
         return  jsonify({
         'predictions': predictions,
         'prediction_id': prediction_id
@@ -248,39 +409,83 @@ class FileController:
                          download_name='processed_content.doc',
                          mimetype='application/msword')
     
-    def save_labels(self, labels, result_id):
-        log_file_path = os.path.join(project_root, "Model","dataset","output_images", "train.txt")
-        test_file_path = os.path.join(project_root, "Model","dataset","output_images", "test.txt")
+    def update_file(self,file_path, old_result, labels):
+        # Lấy thông tin từ old_result
+        images_belong_to_this_label = old_result["list_images"]
 
-        # Kiểm tra xem thư mục của file có tồn tại không, nếu không thì tạo
-        
-        # Kiểm tra nếu file tồn tại
-        if os.path.exists(log_file_path):
-            # Mở file ở chế độ đọc nếu file tồn tại
-            with open(log_file_path, 'r', encoding='utf-8') as file:
-                existing_lines_count = len(file.readlines())
+        # Tạo dictionary {filename: label} từ old_result để tra cứu nhanh
+        updated_labels_dict = {
+            os.path.basename(image["filename"]): label
+            for image, label in zip(images_belong_to_this_label, labels)
+        }
+
+        # Kiểm tra xem file có tồn tại không
+        if os.path.exists(file_path):
+            # Đọc nội dung file nếu đã tồn tại
+            with open(file_path, "r", encoding='utf-8') as file:
+                lines = file.readlines()
+
+            # Cập nhật hoặc giữ nguyên nội dung của file
+            updated_lines = []
+            existing_filenames = set()  # Lưu các filename đã có trong file
+
+            for line in lines:
+                filename, old_label = line.strip().split("\t")
+                if filename in updated_labels_dict:
+                    # Nếu filename đã tồn tại trong file, cập nhật label mới nếu cần
+                    new_label = updated_labels_dict[filename]
+                    updated_lines.append(f"{filename}\t{new_label}\n")
+                    # Đánh dấu filename này đã xử lý
+                    existing_filenames.add(filename)
+                else:
+                    # Giữ nguyên dòng nếu không cần cập nhật
+                    updated_lines.append(line)
+
+            # Thêm các filename chưa tồn tại trong file vào cuối file
+            for filename, label in updated_labels_dict.items():
+                if filename not in existing_filenames:
+                    updated_lines.append(f"{filename}\t{label}\n")
+
+            # Ghi lại nội dung đã cập nhật vào file
+            with open(file_path, "w", encoding='utf-8') as file:
+                file.writelines(updated_lines)
         else:
-            # Nếu file không tồn tại, đặt số dòng ban đầu là 0 hoặc thực hiện hành động khác
-            existing_lines_count = 0
+            # Nếu file không tồn tại, tạo file mới từ old_result và labels
+            new_entries = [f"{os.path.basename(image['filename'])}\t{label}"
+                        for image, label in zip(images_belong_to_this_label, labels)]
 
-        new_entries = [f"{i}.png\t{label}" for i, label in enumerate(labels, start=existing_lines_count)]
-        
-        with open(log_file_path, "a", encoding='utf-8') as log_file:
-            log_file.write("\n".join(new_entries) + "\n")
-        with open(test_file_path, "a", encoding='utf-8') as test_file:
-            test_file.write("\n".join(new_entries) + "\n")
-        
+            # Ghi vào file mới
+            with open(file_path, "w", encoding='utf-8') as file:
+                file.write("\n".join(new_entries) + "\n")
+
+
+    
+    def save_labels(self, labels, result_id):
+        log_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "train.txt")
+        test_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "test.txt")
         old_result = self.mongo_controller.select_prediction_by_id(result_id)
+        # Ensure the folder exists
+        os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+        # Use the filenames saved in the `ImageController` during cropping
+        # Update filenames with labels and write to train.txt and test.txt
+        self.update_file(log_file_path,old_result,labels)
+
+        # Fetch old result for comparison
+
+        if not old_result:
+            return jsonify({"status": "error", "message": "Invalid result ID"}), 400
+
         wrong_labels = old_result['predictions'].split("\n")
         comparison_results = self.compare_labels(wrong_labels, labels)
 
-
-        # Tính trung bình phần trăm đúng
+        # Calculate average correctness percentage
         avg_simple_similarity = sum(r['simple_similarity'] for r in comparison_results) / len(comparison_results)
         avg_levenshtein_similarity = sum(r['levenshtein_similarity'] for r in comparison_results) / len(comparison_results)
 
-        self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity,"Logs.docx")
-
+        # Save comparison to word document
+        self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity, "Logs.docx")
+        self.mongo_controller.update_labels(result_id,labels)
         return jsonify({
             "status": "success",
             "avg_simple_similarity": avg_simple_similarity,

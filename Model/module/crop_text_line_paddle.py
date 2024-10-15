@@ -1,9 +1,15 @@
+from datetime import datetime
+import secrets
+import string
 import numpy as np
 import cv2
 from paddleocr import PaddleOCR
-
 # Initialize PaddleOCR
 ocr = PaddleOCR(lang="en")
+
+def generate_random_id(length=5):
+    characters = string.ascii_letters + string.digits  # Uppercase, lowercase letters, and digits
+    return ''.join(secrets.choice(characters) for _ in range(length))
 
 def extract_image_segments(cv_image):
     # Ensure the image is in RGB format if it's in BGR (OpenCV default is BGR)
@@ -26,7 +32,6 @@ def extract_image_segments(cv_image):
         top_left = (int(box[0][0][0]), int(box[0][0][1]))  # Top-left corner
         bottom_right = (int(box[0][2][0]), int(box[0][2][1]))  # Bottom-right corner
 
-
         # Append bounding box coordinates and text
         bounding_boxes.append((top_left, bottom_right, text, score))
 
@@ -43,7 +48,13 @@ def extract_image_segments(cv_image):
 
         # Crop the region of interest (ROI)
         roi = cv_image[y_min:y_max, x_min:x_max]
-        segments.append(roi)
 
-    # Return the list of image segments
+        # Generate a unique ID for the segment
+        segment_id = generate_random_id(5)
+        segments.append({
+            "id": segment_id,
+            "roi": roi
+        })
+
+    # Return the list of image segments with unique IDs
     return segments

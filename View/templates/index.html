@@ -113,10 +113,13 @@
         const uploadIcon = uploadBox.querySelector('.img_upload');
         const uploadContent = uploadBox.querySelector('.content_upload');
         const convertBtn = document.getElementById('convert-btn');
+        const result_id=document.querySelector(".result_id")
+        const output_text=document.querySelector('#output-text')
         // Xóa nội dung cũ
         uploadIcon.style.display = 'none';
         uploadContent.innerHTML = '';
-
+        result_id.innerHTML=""
+        output_text.innerHTML="Your text will be here"
         // Duyệt qua tất cả các file đã chọn
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
