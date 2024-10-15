@@ -11,6 +11,7 @@ from flask import send_file, jsonify
 from bson.objectid import ObjectId
 from docx import Document
 from docx.shared import Inches
+import matplotlib.pyplot as plt
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -178,44 +179,86 @@ class ImageController:
         
         # Tạo bộ dò SIFT
         sift = cv2.SIFT_create()
-        
+
         # Tìm keypoints và descriptors cho logo tham chiếu
         kp_ref, des_ref = sift.detectAndCompute(logo_ref, None)
         
-        def calculate_logo_similarity(img):
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        def locate_logo(img):
+            if len(img.shape) == 3:
+                gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            else:
+                gray = img
+            
             kp_img, des_img = sift.detectAndCompute(gray, None)
             
             if des_img is None:
-                return 0  # Trả về 0 nếu không tìm thấy descriptors
+                return None  # Trả về None nếu không tìm thấy descriptors
             
             bf = cv2.BFMatcher()
             matches = bf.knnMatch(des_ref, des_img, k=2)
             
             good_matches = [m for m, n in matches if m.distance < 0.75 * n.distance]
-            return len(good_matches)
-        
+            
+            if len(good_matches) > 5:  # Ngưỡng số lượng matches tốt
+                src_pts = np.float32([kp_ref[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+                dst_pts = np.float32([kp_img[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+                
+                M, _ = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+                h, w = logo_ref.shape
+                pts = np.float32([[0, 0], [0, h-1], [w-1, h-1], [w-1, 0]]).reshape(-1, 1, 2)
+                dst = cv2.perspectiveTransform(pts, M)
+                
+                # Tính toán tâm của logo được phát hiện
+                center_x = np.mean(dst[:, 0, 0])
+                center_y = np.mean(dst[:, 0, 1])
+                
+                return (center_x, center_y)
+            else:
+                return None
+
         def determine_horizontal_orientation(img):
             height, width = img.shape[:2]
             if width > height:
+                print("khong xoay ngang")
                 return img
             else:
+                print("xoay ngang")
                 return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
         
         # Đưa ảnh về hướng nằm ngang
         horizontal_img = determine_horizontal_orientation(image)
         
-        # Kiểm tra xem có cần xoay 180 độ không
-        original_similarity = calculate_logo_similarity(horizontal_img)
-        rotated_180 = cv2.rotate(horizontal_img, cv2.ROTATE_180)
-        rotated_similarity = calculate_logo_similarity(rotated_180)
+        # Xác định vị trí logo
+        logo_position = locate_logo(horizontal_img)
         
-        if rotated_similarity > original_similarity:
-            print("180-degree rotation needed")
-            return rotated_180
-        else:
-            print("No rotation needed")
+        if logo_position is None:
+            print("Khong thay logo")
             return horizontal_img
+        
+        height, width = horizontal_img.shape[:2]
+        center_x, center_y = logo_position
+        
+        # Kiểm tra xem logo có ở góc trái trên không
+        if center_x < width / 2 and center_y < height / 2:
+            print("Logo o goc trai tren, khong xoay")
+            return horizontal_img
+        else:
+            print("Logo o goc phai duoi, xoay 180 do")
+            return cv2.rotate(horizontal_img, cv2.ROTATE_180)
+
+    # Hàm phụ trợ để vẽ khung bao quanh thẻ CCCD (có thể sử dụng để kiểm tra)
+    def draw_bounding_box(img):
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if contours:
+            largest_contour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largest_contour)
+            cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        
+        return img
+    
 
     def convert_images(self,files):
         all_predictions = []
@@ -226,10 +269,24 @@ class ImageController:
 
             # Convert to OpenCV format
             cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+
+            # Gọi hàm xoay hình ảnh
             rotated_image = ImageController.detect_logo_and_rotate(cv_image)
 
             # Gọi hàm điều chỉnh ánh sáng
             enhanced_image = ImageController.adjust_image_brightness(rotated_image)
+
+            # Kiểm tra ảnh trước khi xoay và viền nhận diện cccd
+            draw = ImageController.draw_bounding_box(cv_image)
+            plt.imshow(draw, cmap='gray')
+            plt.axis('off')  # Tắt hệ trục nếu muốn
+            plt.show()
+            
+            # Kiểm tra ảnh sau khi xoay và viền nhận diện cccd
+            draw = ImageController.draw_bounding_box(enhanced_image)
+            plt.imshow(draw, cmap='gray')
+            plt.axis('off')  # Tắt hệ trục nếu muốn
+            plt.show()
 
             height, width = cv_image.shape[:2]
 
