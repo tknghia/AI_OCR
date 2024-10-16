@@ -1,6 +1,13 @@
 import os
 from flask import Flask, render_template, request
 import sys
+#import for chart and report_log
+import io  # Thêm 
+import base64
+import matplotlib
+matplotlib.use('Agg')  # Sử dụng backend không GUI
+import docx
+from matplotlib import pyplot as plt
 # import threading
 import time
 from queue import Queue
@@ -88,6 +95,66 @@ def save():
     # start_training_thread()
     
     return result
+
+# Hàm đọc file Word
+def read_word_file(file_path):
+    doc = docx.Document(file_path)
+    all_tables_data = []  # Danh sách chứa tất cả các bảng
+    
+    # Đọc từng bảng trong file Word
+    for table in doc.tables:
+        table_data = []  # Danh sách chứa dữ liệu cho bảng hiện tại
+        for row in table.rows:
+            row_data = [cell.text for cell in row.cells]
+            table_data.append(row_data)
+        all_tables_data.append(table_data)  # Thêm bảng hiện tại vào danh sách
+    return all_tables_data  # Trả về danh sách các bảng
+
+@app.route('/report_log')
+def report_log():
+    # Đọc dữ liệu từ file Word
+    file_path = "D:/Downloads/Logs.docx"  # Thay bằng đường dẫn thật đến file của bạn
+    if os.path.exists(file_path):
+        word_data = read_word_file(file_path)
+
+        # Render trang HTML với dữ liệu từ file Word
+        return render_template('report_log.html', tables=word_data)
+    else:
+        return "Log file not found.", 404
+
+@app.route('/chart')
+def view_chart():
+    # Danh sách samples
+    samples = ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8']
+    
+    # Dữ liệu cho từng sample
+    simple_similarity = [82.72, 98.03, 75.00, 85.50, 90.00, 78.00, 95.00, 88.50]
+    levenshtein_similarity = [94.19, 98.35, 90.00, 92.50, 95.00, 80.00, 97.00, 89.00]
+
+    # Vẽ biểu đồ đường
+    plt.figure(figsize=(12, 6))  # Thay đổi kích thước nếu cần
+    
+    # Vẽ đường cho Average Simple Similarity
+    plt.plot(samples, simple_similarity, marker='o', label='Average Simple Similarity', color='blue')
+    # Vẽ đường cho Average Levenshtein Similarity
+    plt.plot(samples, levenshtein_similarity, marker='o', label='Average Levenshtein Similarity', color='red')
+    
+    plt.xlabel('Samples')
+    plt.ylabel('Similarity (%)')
+    plt.title('Comparison of Similarity Metrics')
+    plt.legend()
+    plt.grid(True)
+    
+    # Lưu biểu đồ vào buffer và chuyển đổi thành base64
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    image_png = buf.getvalue()
+    buf.close()
+    graph_url = base64.b64encode(image_png).decode('utf-8')
+
+    return render_template('chart.html', graph_url=graph_url)
 
 if __name__ == '__main__':
     # start_training_thread()
