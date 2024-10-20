@@ -288,11 +288,13 @@ class ImageController:
             plt.axis('off')  # Tắt hệ trục nếu muốn
             plt.show()
 
-            height, width = cv_image.shape[:2]
+            cv_image1 = cv2.cvtColor(enhanced_image, cv2.COLOR_RGB2GRAY)
+
+            height, width = cv_image1.shape[:2]
 
             if height > 55:
                 # Perform segmentation and OCR prediction
-                arr = segmentsPaddle.extract_image_segments(enhanced_image)
+                arr = segmentsPaddle.extract_image_segments(cv_image1)
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
                 os.makedirs(output_dir, exist_ok=True)
