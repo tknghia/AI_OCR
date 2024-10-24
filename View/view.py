@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, redirect, render_template, request, url_for
 import sys
 #import for chart and report_log
 import io  # Thêm 
@@ -69,7 +69,14 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html')  
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        return redirect(url_for('index'))
+
+    return render_template('login.html')
 
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():

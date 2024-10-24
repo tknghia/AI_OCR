@@ -4,81 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <title>Report Log</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0; /* Loại bỏ khoảng cách mặc định */
-            padding: 0; /* Loại bỏ padding mặc định */
-        }
-        /* Thiết kế cho header */
-        .header {
-            position: fixed;
-            top: 0; /* Đặt tiêu đề ở trên cùng */
-            left: 0;
-            right: 0; /* Để tiêu đề trải dài ra toàn bộ chiều rộng */
-            background-color: #4CAF50; /* Màu nền của tiêu đề */
-            color: white; /* Màu chữ */
-            text-align: center; /* Căn giữa nội dung */
-            z-index: 999; /* Để tiêu đề nằm trên các thành phần khác */
-            padding: 15px 0; /* Khoảng cách trên và dưới cho tiêu đề */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Đổ bóng cho tiêu đề */
-        }
-        /* Định dạng cho tiêu đề h1 */
-        .header h1 {
-            margin: 0; /* Loại bỏ margin */
-            font-size: 24px; /* Kích thước chữ tiêu đề */
-            display: inline-block; /* Để tiêu đề nằm ngang cùng với nút */
-        }
-        /* Định dạng cho nút back */
-        .back-button {
-            position: absolute; /* Để nút nằm ở vị trí cố định trong header */
-            left: 20px; /* Khoảng cách từ bên trái */
-            top: 50%; /* Đặt nút ở giữa chiều dọc */
-            transform: translateY(-50%); /* Căn giữa dọc cho nút */
-            background: none; /* Không có màu nền */
-            border: none; /* Không có viền */
-            color: white; /* Màu chữ */
-            cursor: pointer; /* Hiển thị con trỏ khi di chuột */
-        }
-        .back-button i {
-            font-size: 18px; /* Kích thước biểu tượng */
-        }
-        /* Định dạng cho bảng */
+        
         table {
-            width: 80%; /* Giảm kích thước bảng */
-            margin: 20px auto; /* Căn giữa bảng và tạo khoảng cách từ trên xuống */
+            width: 80%; 
+            margin: 20px auto; 
             border-collapse: collapse;
         }
         table, th, td {
             border: 1px solid black;
         }
         th, td {
-            padding: 8px; /* Giảm padding */
+            padding: 8px; 
             text-align: center;
         }
-        /* Định dạng cho tiêu đề của mỗi bảng */
+
         h2 {
-            text-align: left; /* Căn trái cho tiêu đề bảng */
-            margin-left: 10%; /* Đưa tiêu đề bảng vào bên trái một chút */
+            text-align: left; 
+            margin-left: 10%; 
         }
-        /* Đặt margin cho phần nội dung */
-        .content {
-            margin-top: 80px; /* Tạo khoảng cách dưới tiêu đề */
-            padding: 20px; /* Thêm padding cho nội dung */
+
+        .content1 {
+            margin-top: 80px; 
+            padding: 20px; 
         }
     </style>
 </head>
 <body>
-
-    <div class="header"> <!-- Khối chứa tiêu đề -->
-        <button class="back-button" onclick="goBack()">
-            <i class="fas fa-arrow-left"></i>
-        </button>
-        <h1>Report Log</h1>
-    </div>
-
-    <div class="content">
+     <!-- Header -->
+     <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Report Log</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">Jpg to Word</a></li>
+                    <li><a href="/report_log">Report Log</a></li>
+                    <li><a href="/chart">Chart</a></li>
+                    <li><a href="/login">Account</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="content1">
         <!-- Lặp qua từng bảng -->
         {% for table in tables %}
             <h2>Sample Table {{ loop.index }}</h2>  <!-- Tự động đánh số thứ tự cho mỗi bảng -->
