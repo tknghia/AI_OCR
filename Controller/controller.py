@@ -112,7 +112,7 @@ class ImageController:
 
         # Giảm độ sáng và tương phản
         alpha = 0.8  # Giảm tương phản
-        beta = -50   # Giảm độ sáng
+        beta = -30   # Giảm độ sáng
         dark_image = cv2.convertScaleAbs(enhanced_image, alpha=alpha, beta=beta)
 
         return dark_image
@@ -183,6 +183,7 @@ class ImageController:
         # Tìm keypoints và descriptors cho logo tham chiếu
         kp_ref, des_ref = sift.detectAndCompute(logo_ref, None)
         
+        #Hàm phát hiện logo và trả về vị trí logo
         def locate_logo(img):
             if len(img.shape) == 3:
                 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -217,8 +218,7 @@ class ImageController:
                 return None
 
         def determine_horizontal_orientation(img):
-            height, width = img.shape[:2]
-            if width > height:
+            if ImageController.is_wider_than_tall(img):
                 print("khong xoay ngang")
                 return img
             else:
@@ -227,14 +227,26 @@ class ImageController:
         
         # Đưa ảnh về hướng nằm ngang
         horizontal_img = determine_horizontal_orientation(image)
+        rolate_img = cv2.rotate(horizontal_img, cv2.ROTATE_180)
         
         # Xác định vị trí logo
         logo_position = locate_logo(horizontal_img)
         
         if logo_position is None:
-            print("Khong thay logo")
-            return horizontal_img
-        
+            # Nếu không tìm thấy khuôn mặt trên ảnh gốc
+            if ImageController.is_face_on_left(image) is None:
+                print("khong thay logo va face xoay de kiem tra")
+                if ImageController.is_face_on_left(rolate_img) is None:
+                    print("Khong thay khuon mat sau khi xoay")
+                    return horizontal_img
+                else:
+                    print("thay face sau khi xoay")
+                    return rolate_img
+            # Nếu tìm thấy khuôn mặt trên ảnh gốc
+            else:
+                print("Thay face truoc khi xoay")
+                return horizontal_img
+                
         height, width = horizontal_img.shape[:2]
         center_x, center_y = logo_position
         
@@ -245,6 +257,69 @@ class ImageController:
         else:
             print("Logo o goc phai duoi, xoay 180 do")
             return cv2.rotate(horizontal_img, cv2.ROTATE_180)
+
+    #Hàm kiểm tra chiều rộng hình ảnh có lớn chiều cao không
+    def is_wider_than_tall(img):
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if contours:
+            largest_contour = max(contours, key=cv2.contourArea)
+            x, y, w, h = cv2.boundingRect(largest_contour)
+            # Kiểm tra nếu chiều rộng lớn hơn chiều cao
+            return w > h
+        
+        return False  # Nếu không tìm thấy đường viền nào
+
+
+
+
+
+
+    def is_face_on_left(img):
+        # Khởi tạo face detector
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+        
+        # Chuyển sang ảnh xám nếu cần
+        if len(img.shape) == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img
+            
+        # Phát hiện khuôn mặt
+        faces = face_cascade.detectMultiScale(
+            gray,
+            scaleFactor=1.05,
+            minNeighbors=15,
+            minSize=(50, 50)
+        )
+        
+        if len(faces) == 0:
+            print("Khong phat hien khuon mat")
+            return None
+            
+        # Lấy khuôn mặt lớn nhất (trường hợp có nhiều khuôn mặt)
+        largest_face = max(faces, key=lambda f: f[2] * f[3])
+        x, y, w, h = largest_face
+        
+        # Tính tâm của khuôn mặt
+        face_center_x = x + w/2
+        
+        # Kiểm tra xem khuôn mặt có nằm bên trái không
+        # (so với một nửa chiều rộng của ảnh)
+        image_center_x = img.shape[1] / 2
+        is_left = face_center_x < image_center_x
+        
+        print(f"Tam khuon mat: {face_center_x}")
+        print(f"Giua hinh anh: {image_center_x}")
+        print("Khuon mat nam ben : " + ("trai" if is_left else "phai"))
+        
+        return is_left
+
+
+
+
 
     # Hàm phụ trợ để vẽ khung bao quanh thẻ CCCD (có thể sử dụng để kiểm tra)
     def draw_bounding_box(img):
@@ -258,7 +333,6 @@ class ImageController:
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
         
         return img
-    
 
     def convert_images(self,files):
         all_predictions = []
@@ -277,22 +351,28 @@ class ImageController:
             enhanced_image = ImageController.adjust_image_brightness(rotated_image)
 
             # Kiểm tra ảnh trước khi xoay và viền nhận diện cccd
-            draw = ImageController.draw_bounding_box(cv_image)
-            plt.imshow(draw, cmap='gray')
-            plt.axis('off')  # Tắt hệ trục nếu muốn
-            plt.show()
+            # draw = ImageController.draw_bounding_box(cv_image)
+            # plt.imshow(draw, cmap='gray')
+            # plt.axis('off')  # Tắt hệ trục nếu muốn
+            # plt.show()
             
             # Kiểm tra ảnh sau khi xoay và viền nhận diện cccd
-            draw = ImageController.draw_bounding_box(enhanced_image)
-            plt.imshow(draw, cmap='gray')
-            plt.axis('off')  # Tắt hệ trục nếu muốn
-            plt.show()
+            # draw = ImageController.draw_bounding_box(enhanced_image)
+            # plt.imshow(draw, cmap='gray')
+            # plt.axis('off')  # Tắt hệ trục nếu muốn
+            # plt.show()
 
-            height, width = cv_image.shape[:2]
+            # Chuyển sang ảnh dạng màu BGR nếu cần
+            if len(enhanced_image.shape) == 1:
+                new = cv2.cvtColor(enhanced_image, cv2.COLOR_GRAY2BGR)
+            else:
+                new = enhanced_image
+
+            height, width = new.shape[:2]
 
             if height > 55:
                 # Perform segmentation and OCR prediction
-                arr = segmentsPaddle.extract_image_segments(enhanced_image)
+                arr = segmentsPaddle.extract_image_segments(new)
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
                 os.makedirs(output_dir, exist_ok=True)
