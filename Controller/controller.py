@@ -12,6 +12,10 @@ from bson.objectid import ObjectId
 from docx import Document
 from docx.shared import Inches
 import matplotlib.pyplot as plt
+import hashlib
+
+
+
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -32,7 +36,7 @@ class MongoController:
         self.db_cccd = self.client['CCCD']
         self.collection_cccd = self.db_cccd['CCCD']
         self.log_collection = self.db_cccd['Logs']
-    
+        self.user=self.db_cccd['Users']
     def select_prediction_by_id(self, id):
         try:
             # Convert the string ID to an ObjectId
@@ -51,23 +55,45 @@ class MongoController:
             print(f"Error while retrieving prediction with id {id}: {e}")
             return f"Error while retrieving prediction: {e}"
 
-    def log_predictions(self, predictions, upload_time,list_images):
+    def log_predictions(self, predictions, upload_time, list_images, user_id=None):
         try:
             # Log predictions to MongoDB
-            mongo_log_entry = {"upload_time": upload_time, "predictions": predictions,"list_images":list_images}
-            logs_prediction=self.log_collection.insert_one(mongo_log_entry)
-            result_prediction=self.collection.insert_one({"predictions": predictions})
+            mongo_log_entry = {
+                "upload_time": upload_time,
+                "predictions": predictions,
+                "list_images": list_images
+            }
 
-            # If CCCD is detected, log additional info
+            # Nếu có user_id thì thêm vào log
+            if user_id:
+                mongo_log_entry["user_id"] = user_id
+
+            # Ghi vào log_collection
+            logs_prediction = self.log_collection.insert_one(mongo_log_entry)
+            result_prediction = self.collection.insert_one({"predictions": predictions})
+
+            # Nếu phát hiện CCCD, log thêm thông tin vào cccd_collection
             if "CĂN CƯỚC CÔNG DÂN" in predictions:
                 extracted_info = ImageController.extract_info(predictions)
-                self.collection_cccd.insert_one({"cccd": extracted_info})
+
+                # Tạo document cho CCCD collection
+                cccd_entry = {"cccd": extracted_info}
+
+                # Nếu có user_id thì thêm vào document
+                if user_id:
+                    cccd_entry["user_id"] = user_id
+
+                # Ghi vào collection_cccd
+                self.collection_cccd.insert_one(cccd_entry)
+
+            # Trả về ID của document vừa ghi vào log_collection
             inserted_document = self.log_collection.find_one({"_id": logs_prediction.inserted_id})
 
             return str(inserted_document["_id"])
 
         except Exception as e:
             print(f"Error writing to MongoDB: {e}")
+            return None
 
     def update_labels(self,object_id, list_labels):
         try:
@@ -96,7 +122,87 @@ class MongoController:
 
         except Exception as e:
             print(f"An error occurred: {e}")
+    def get_logs_by_user_id(self, user_id):
+        try:
+            # Truy vấn tất cả các log dựa theo user_id
+            query = {"user_id": user_id}
+            logs = self.log_collection.find(query)
+            
+            # Nếu không có log nào, trả về thông báo
+            if logs.count() == 0:
+                return f"No logs found for user with id: {user_id}"
+            
+            # Lưu trữ kết quả truy vấn
+            log_list = []
+            for log in logs:
+                log_list.append(log)
+            
+            return log_list  # Trả về danh sách các logs
 
+        except Exception as e:
+            # Log lỗi và trả về thông báo lỗi
+            print(f"Error while retrieving logs for user with id {user_id}: {e}")
+            return f"Error while retrieving logs: {e}"
+
+class AuthController:
+    mongo_controller = MongoController()
+
+    def generate_salt(self):
+        # Tạo một chuỗi salt ngẫu nhiên (16 bytes)
+        return os.urandom(16).hex()
+
+    def hash_password(self, password, salt):
+        # Kết hợp password với salt và hash (SHA-256)
+        return hashlib.sha256((salt + password).encode()).hexdigest()
+
+    def register(self, username, password, email):
+        try:
+            # Kiểm tra nếu user đã tồn tại
+            existing_user = self.collection_users.find_one({"email": email})
+            if existing_user:
+                return f"this Email {username} is already been used."
+
+            # Tạo salt và hash password
+            salt = self.generate_salt()
+            hashed_password = self.hash_password(password, salt)
+
+            # Lưu thông tin user kèm theo salt và hash của mật khẩu
+            user_data = {
+                "username": username,
+                "salt": salt,
+                "password": hashed_password,
+                "email": email
+            }
+
+            # Insert user vào MongoDB
+            self.collection_users.insert_one(user_data)
+            return "Registration successful."
+
+        except Exception as e:
+            print(f"Error during registration: {e}")
+            return "An error occurred during registration."
+
+    def login(self, username, password):
+        try:
+            # Tìm user theo username
+            user = self.collection_users.find_one({"username": username})
+
+            if not user:
+                return "Invalid username or password."
+
+            # Lấy salt từ user và hash mật khẩu được cung cấp
+            salt = user['salt']
+            hashed_password = self.hash_password(password, salt)
+
+            # So sánh mật khẩu hash với mật khẩu lưu trữ
+            if hashed_password == user['password']:
+                return "Login successful."
+            else:
+                return "Invalid username or password."
+
+        except Exception as e:
+            print(f"Error during login: {e}")
+            return "An error occurred during login."
 
 class ImageController:
     mongo_controller = MongoController()  # Initialize MongoController
@@ -338,7 +444,7 @@ class ImageController:
 
         return '\n'.join(all_predictions),cropped_images_metadata
 
-    def process_images(self, files):
+    def process_images(self, files,userId=None):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
 
@@ -352,7 +458,7 @@ class ImageController:
             log_file.write("\n".join(log_entries) + "\n")
 
         # Use MongoController to log predictions
-        prediction_id=self.mongo_controller.log_predictions(predictions,upload_time,list_crop_images)
+        prediction_id=self.mongo_controller.log_predictions(predictions,upload_time,list_crop_images,userId)
         return  jsonify({
         'predictions': predictions,
         'prediction_id': prediction_id
