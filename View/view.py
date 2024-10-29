@@ -76,6 +76,13 @@ def index():
         # Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
         return redirect(url_for('login')) 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        return redirect(url_for('index'))
+
+    return render_template('login.html')
+
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
     files = request.files.getlist('images')
