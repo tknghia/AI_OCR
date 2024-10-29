@@ -874,15 +874,38 @@ class FileController:
         log_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "train.txt")
         test_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "test.txt")
         old_result = self.mongo_controller.select_prediction_by_id(result_id)
+        
         # Ensure the folder exists
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
 
-        # Use the filenames saved in the `ImageController` during cropping
-        # Update filenames with labels and write to train.txt and test.txt
-        self.update_file(log_file_path,old_result,labels)
+        # Get the list of images
+        images = old_result["list_images"]
+        
+        # Calculate split point at 20% of data
+        total_samples = len(labels)
+        split_point = int(total_samples * 0.3)
+        
+        # Split both images and labels synchronously
+        test_images = images[:split_point]
+        test_labels = labels[:split_point]
+        
+        train_images = images
+        train_labels = labels
+        
+        # Create temporary results for test and train
+        test_result = old_result.copy()
+        test_result["list_images"] = test_images
+        
+        train_result = old_result.copy()
+        train_result["list_images"] = train_images
+        
+        # Update test.txt with first 20% of data
+        self.update_file(test_file_path, test_result, test_labels)
+        
+        # Update train.txt with remaining 80% of data
+        self.update_file(log_file_path, train_result, train_labels)
 
-        # Fetch old result for comparison
-
+        # Process comparison with original predictions
         if not old_result:
             return jsonify({"status": "error", "message": "Invalid result ID"}), 400
 
@@ -896,7 +919,8 @@ class FileController:
         # Save comparison to word document
         self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity, "Logs.docx")
         self.calculate_avg_levenshtein_similarity("Logs.docx")
-        self.mongo_controller.update_labels(result_id,labels)
+        self.mongo_controller.update_labels(result_id, labels)
+        
         return jsonify({
             "status": "success",
             "avg_simple_similarity": avg_simple_similarity,
