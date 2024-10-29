@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify,session,url_for,redirect
 import sys
 #import for chart and report_log
 import io  # Thêm 
@@ -18,14 +18,14 @@ from nbconvert.preprocessors import ExecutePreprocessor
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.append(project_root)
-from Controller.controller import ImageController, FileController
+from Controller.controller import ImageController, FileController , AuthController
 
 app = Flask(__name__)
-
+app.secret_key="thisismysecretkeyforthisapp"
 # Initialize controllers
 image_controller = ImageController()
 file_controller = FileController()
-
+auth_controller=AuthController()
 # Training queue and thread
 # training_queue = Queue()
 # training_thread = None
@@ -69,7 +69,12 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Kiểm tra nếu người dùng đã đăng nhập
+    if 'logged_in' in session and session['logged_in']:
+        return render_template('index.html')
+    else:
+        # Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
+        return redirect(url_for('login')) 
 
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
@@ -87,7 +92,6 @@ def save():
     result_id = request.json.get('result_id', '')
     # Lưu labels
     result = file_controller.save_labels(labels, result_id)
-    
     # Thêm task training vào queue
     # training_queue.put(True)
     
@@ -155,6 +159,41 @@ def view_chart():
     graph_url = base64.b64encode(image_png).decode('utf-8')
 
     return render_template('chart.html', graph_url=graph_url)
+
+@app.route('/register', methods=["POST"])
+def register():
+    # Lấy dữ liệu JSON từ yêu cầu POST
+    data = request.get_json()
+    # Gọi hàm register trong auth_controller với dữ liệu người dùng
+    result = auth_controller.register(data)
+
+    # Trả về kết quả của hàm register dưới dạng JSON
+    return jsonify(result)
+
+@app.route('/login', methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        if request.is_json:
+            data = request.get_json()
+            username = data.get("username")
+            password = data.get("password")
+        else:
+            username = request.form.get("username")
+            password = request.form.get("password")
+        
+        # Gọi hàm login trong auth_controller với dữ liệu người dùng
+        result = auth_controller.login(username, password)
+
+        if result == "Login successful.":
+            # Lưu thông tin đăng nhập vào session
+            session['logged_in'] = True
+            session['username'] = username
+            return jsonify(result)
+        else:
+            return jsonify({"error": result}), 401
+    else:
+        return render_template("login.html")
+
 
 if __name__ == '__main__':
     # start_training_thread()
