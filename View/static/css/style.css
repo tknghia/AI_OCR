@@ -219,6 +219,29 @@ nav ul li a.active {
     background-color: #001eff;
 }
 
+/* CSS select */
+.file-upload-select {
+    border: 1px solid #007BFF;
+    border-radius: 5px; 
+    font-size: 16px; 
+    color: #333;
+    padding: 10px 40px 10px 20px; 
+    background-color: white; 
+    appearance: none; 
+    cursor: pointer;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" viewBox="0 0 10 5"><polygon points="0,0 10,0 5,5" fill="%23007BFF"/></svg>'); /* Thêm hình mũi tên */
+    background-repeat: no-repeat; 
+    background-position: right 20px center; 
+    background-size: 10px 5px;
+}
+
+.file-upload-select:focus {
+    outline: none;
+    border-color: #0056b3; 
+}
+
+/* CSS select */
+
 .file-upload {
     display: none;
 }
