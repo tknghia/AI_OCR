@@ -48,6 +48,7 @@
                                 <option value="" selected disabled>Chọn loại tài liệu</option>
                                 <option value="CCCD">CCCD</option>
                                 <option value="GPLX">GPLX</option>
+                                <option value="Passport">Passport</option>
                                 <option value="Khác">Khác</option>
                             </select>
 
@@ -191,11 +192,21 @@
         }
     });
 
-    function callConvert() {
+function callConvert() {
+    const documentType = $('#document-type').val(); // Lấy giá trị của select box
     const fileInput = document.getElementById('file-upload');
     const formData = new FormData();
     const loading = document.getElementsByClassName('loader')[0];
     let result_id=document.querySelector(".result_id")
+
+    // Kiểm tra nếu người dùng chưa chọn giá trị hoặc file thì không làm gì cả
+    if (!documentType || fileInput.files.length === 0) {
+        alert("Hãy chọn loại tài liệu và file trước khi bắt đầu.");
+        return;
+    }
+
+    // Thêm giá trị của select box vào FormData
+    formData.append('documentType', documentType);  // Append documentType
     
     // Append each selected file to the FormData object
     for (let i = 0; i < fileInput.files.length; i++) {
@@ -224,7 +235,7 @@
             document.getElementById('output-text').innerHTML = 'Something went wrong, Please try again!';
         }
     });
-    }
+}
 
 function saveToDataset() {
     let new_content = document.getElementById('output-text').innerHTML;

@@ -78,8 +78,9 @@ def index():
     
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
+    document_type = request.form.get('documentType')  # Lấy giá trị documentType
     files = request.files.getlist('images')
-    return image_controller.process_images(files)
+    return image_controller.process_images(files, type=document_type, userId=None)
 
 @app.route('/download', methods=['POST'])
 def download():

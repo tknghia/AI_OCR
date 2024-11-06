@@ -24,6 +24,8 @@ sys.path.append(project_root)
 # Import vietocr_module and segmentsPaddle from the model
 from Model.module import vietocr_module as vietocr_module
 from Model.module import crop_text_line_paddle as segmentsPaddle
+from Model.module import crop_text_line_yolov8_passport as Passport
+
 
 
 class MongoController:
@@ -529,7 +531,7 @@ class ImageController:
         
         return img
 
-    def convert_images(self,files):
+    def convert_images(self,files,type):
         all_predictions = []
         cropped_images_metadata=[]
         # Loop through all uploaded files
@@ -566,20 +568,23 @@ class ImageController:
             # plt.show()
 
             # Chuyển sang ảnh dạng màu BGR nếu cần
-            if len(enhanced_image.shape) == 1:
-                new = cv2.cvtColor(enhanced_image, cv2.COLOR_GRAY2BGR)
-            else:
-                new = enhanced_image
+            # if len(enhanced_image.shape) == 1:
+            #     new = cv2.cvtColor(enhanced_image, cv2.COLOR_GRAY2BGR)
+            # else:
+            #     new = enhanced_image
 
-            height, width = new.shape[:2]
-            cv_image1 = cv2.cvtColor(enhanced_image, cv2.COLOR_RGB2GRAY)
-
-            height, width = cv_image1.shape[:2]
+            height, width = enhanced_image.shape[:2]
 
             if height > 55:
                 # Perform segmentation and OCR prediction
-                arr = segmentsPaddle.extract_image_segments(new)
-                arr = segmentsPaddle.extract_image_segments(cv_image1)
+                # Kiểm tra loại tài liệu
+                if type == "Passport":
+                    # Sử dụng YOLOv8 cho Passport
+                    print("Passport")
+                    arr = Passport.extract_image_segments(enhanced_image)
+                elif type == "Khác":
+                    # Sử dụng PaddleOCR cho các loại khác
+                    arr = segmentsPaddle.extract_image_segments(enhanced_image)
                 current_dir = os.path.dirname(os.path.abspath(__file__))
                 output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
                 os.makedirs(output_dir, exist_ok=True)
@@ -623,11 +628,11 @@ class ImageController:
 
         return '\n'.join(all_predictions),cropped_images_metadata
 
-    def process_images(self, files,userId=None):
+    def process_images(self, files, type, userId=None):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
 
-        predictions,list_crop_images = self.convert_images(files)
+        predictions,list_crop_images = self.convert_images(files, type)
 
         # Log to file
         log_file_path = os.path.join(project_root, "Logs", "upload_logs.txt")
