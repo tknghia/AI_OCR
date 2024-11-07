@@ -44,10 +44,19 @@
                         <img src="{{ url_for('static', filename='images/file.png') }}" alt="Upload Icon" class="img_upload">
                         <p class="content_upload">Upload or drag and drop multiple pictures.</p>
                         <div class="button-container">
-                            <button type="button" class="file-upload-btn"
-                                onclick="document.getElementById('file-upload').click();">
+                            <!-- Dropdown loại tài liệu-->
+                            <select id="document-type" class="file-upload-select">
+                                <option value="" selected disabled>Chọn loại tài liệu</option>
+                                <option value="CCCD">CCCD</option>
+                                <option value="GPLX">GPLX</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+
+                            <button type="button" class="file-upload-btn" onclick="openFileBrowser();">
                                 Browse
                             </button>
+                        
                             <button type="button" id="convert-btn" class="convert-btn" style="display: none;" onclick="callConvert()">
                                 Start
                             </button>
@@ -104,6 +113,17 @@
 </body>
 
 <script>
+
+    // Hàm mở file browser với kiểm tra document type
+    function openFileBrowser() {
+    const documentType = document.getElementById('document-type').value;
+
+    if (!documentType) {
+        alert('Vui lòng chọn loại tài liệu trước khi bấm Browse nếu không tỉ lệ thành công thấp.');
+    } else {
+        document.getElementById('file-upload').click();
+    }
+}
     const result_id=document.querySelector(".result_id")
 
     console.log(result_id)
@@ -173,11 +193,22 @@
         }
     });
 
-    function callConvert() {
+function callConvert() {
+    const documentType = $('#document-type').val(); // Lấy giá trị của select box
     const fileInput = document.getElementById('file-upload');
     const formData = new FormData();
     const loading = document.getElementsByClassName('loader')[0];
     let result_id=document.querySelector(".result_id")
+
+    // Kiểm tra nếu người dùng chưa chọn giá trị hoặc file thì không làm gì cả
+    if (!documentType || fileInput.files.length === 0) {
+        alert("Hãy chọn loại tài liệu và file trước khi bắt đầu.");
+        return;
+    }
+
+    // Thêm giá trị của select box vào FormData
+    formData.append('documentType', documentType);  // Append documentType
+    
     // Append each selected file to the FormData object
     for (let i = 0; i < fileInput.files.length; i++) {
         formData.append('images', fileInput.files[i]); // Append file with the key 'images'
@@ -205,7 +236,7 @@
             document.getElementById('output-text').innerHTML = 'Something went wrong, Please try again!';
         }
     });
-    }
+}
 
 function saveToDataset() {
     let new_content = document.getElementById('output-text').innerHTML;

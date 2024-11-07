@@ -23,6 +23,10 @@ sys.path.append(project_root)
 # Import vietocr_module and segmentsPaddle from the model
 from Model.module import vietocr_module as vietocr_module
 from Model.module import crop_text_line_paddle as segmentsPaddle
+from Model.module import crop_text_line_yolov8_passport as Passport
+from Model.module import crop_text_line_yolov8_driverlicense as DriverLicense
+from Model.module import crop_text_line_yolov8_vietnamese_id as VietnameId
+
 
 
 class MongoController:
@@ -53,15 +57,15 @@ class MongoController:
             print(f"Error retrieving logs for user with id {user_id}: {e}")
             return f"Error retrieving logs: {e}"
 
-    def log_predictions(self, predictions, upload_time, list_images, user_id=None):
+    def log_predictions(self, predictions, upload_time, list_images, userId=None):
         try:
             mongo_log_entry = {
                 "upload_time": upload_time,
                 "predictions": predictions,
                 "list_images": list_images
             }
-            if user_id:
-                mongo_log_entry["user_id"] = user_id
+            if userId:
+                mongo_log_entry["user_id"] = userId
 
             inserted_id = self.log_collection.insert_one(mongo_log_entry).inserted_id
             return str(inserted_id)
@@ -317,7 +321,7 @@ class ImageController:
         return face_center_x < img.shape[1] / 2
 
     @staticmethod
-    def convert_images(files):
+    def convert_images(files,type):
         all_predictions = []
         cropped_images_metadata = []
 
@@ -327,15 +331,23 @@ class ImageController:
             rotated_image = ImageController.detect_logo_and_rotate(cv_image)
             enhanced_image = ImageController.adjust_image_brightness(rotated_image)
 
-            if len(enhanced_image.shape) == 1:
-                new = cv2.cvtColor(enhanced_image, cv2.COLOR_GRAY2BGR)
-            else:
-                new = enhanced_image
 
-            height, width = new.shape[:2]
+            height, width = enhanced_image.shape[:2]
             if height > 55:
-                arr = segmentsPaddle.extract_image_segments(new)
-                output_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'Model', 'dataset', 'output_images')
+                # Perform segmentation and OCR prediction
+                # Kiểm tra loại tài liệu
+                if type == "Passport":
+                    # Sử dụng YOLOv8 cho Passport
+                    arr = Passport.extract_image_segments(enhanced_image)
+                elif type =="GPLX":
+                    arr=DriverLicense.extract_image_segments(enhanced_image)
+                elif type =="CCCD":
+                    arr=VietnameId.extract_image_segments(enhanced_image)
+                elif type == "Khác":
+                    # Sử dụng PaddleOCR cho các loại khác
+                    arr = segmentsPaddle.extract_image_segments(enhanced_image)
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
                 os.makedirs(output_dir, exist_ok=True)
 
                 for segment in arr:
@@ -356,9 +368,9 @@ class ImageController:
 
         return '\n'.join(all_predictions), cropped_images_metadata
 
-    def process_images(self, files, user_id=None):
+    def process_images(self, files,type, userId=None):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        predictions, cropped_images = self.convert_images(files)
+        predictions, cropped_images = self.convert_images(files,type)
 
         log_file_path = os.path.join(project_root, "Logs", "upload_logs.txt")
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
@@ -367,7 +379,7 @@ class ImageController:
             log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
             log_file.write("\n".join(log_entries) + "\n")
 
-        prediction_id = self.mongo_controller.log_predictions(predictions, upload_time, cropped_images, user_id)
+        prediction_id = self.mongo_controller.log_predictions(predictions, upload_time, cropped_images,userId)
         return jsonify({'predictions': predictions, 'prediction_id': prediction_id})
 
     @staticmethod
@@ -470,6 +482,7 @@ class FileController:
         return send_file(buffer, as_attachment=True, download_name='processed_content.doc', mimetype='application/msword')
     
     def update_file(self, file_path, old_result, labels):
+    # Map images to labels
         images_labels = {os.path.basename(img["filename"]): label for img, label in zip(old_result["list_images"], labels)}
         updated_lines = []
 
@@ -479,21 +492,35 @@ class FileController:
 
             existing_filenames = set()
             for line in lines:
-                filename, old_label = line.strip().split("\t")
+                line = line.strip()
+                # Check if line has the correct format, otherwise skip it
+                parts = line.split("\t")
+                if len(parts) != 2:
+                    print(f"Skipping improperly formatted line: {line}")
+                    updated_lines.append(line + "\n")
+                    continue
+
+                filename, old_label = parts
                 if filename in images_labels:
+                    # Update line if filename matches
                     updated_lines.append(f"{filename}\t{images_labels[filename]}\n")
                     existing_filenames.add(filename)
                 else:
-                    updated_lines.append(line)
+                    # Keep the line as-is if filename doesn't match
+                    updated_lines.append(line + "\n")
 
+            # Add new images that were not in the file
             for filename, label in images_labels.items():
                 if filename not in existing_filenames:
                     updated_lines.append(f"{filename}\t{label}\n")
         else:
-            updated_lines = [f"{os.path.basename(img['filename'])}\t{label}" for img, label in zip(old_result["list_images"], labels)]
+            # Create lines from scratch if file doesn't exist
+            updated_lines = [f"{os.path.basename(img['filename'])}\t{label}\n" for img, label in zip(old_result["list_images"], labels)]
 
+        # Write back to the file
         with open(file_path, "w", encoding='utf-8') as file:
             file.writelines(updated_lines)
+
 
     def save_labels(self, labels, result_id,user_id=None):
         log_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "train.txt")
