@@ -5,56 +5,23 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-<<<<<<< HEAD
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-=======
-
->>>>>>> 8ac558a2e86412ec41fca00119caa70705b3a272
 </head>
 <body>
-
     <div class="container">
-<<<<<<< HEAD
-        <!-- <div class="form-box login">
-            <form action="{{ url_for('login') }}" method="POST">
-                <h1>Login</h1>
-                <div class="input-box">
-                    <input type="text" name="username" placeholder="Username" required>
-                    <i class='bx bxs-user'></i>
-                </div>
-                <div class="input-box">
-                    <input type="password" name="password" placeholder="Password" required>
-                    <i class='bx bxs-lock'></i>
-                </div>
-                <div class="forgot-link">
-                    <a href="#">Forgot Password</a>
-                </div>
-                <button type="submit" class="btn">Login</button>
-                <p>or login with social platforms</p>
-                <div class="social-icons">
-                    <a href="#"><i class='bx bxl-google'></i></a>
-                    <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-                    <a href="#"><i class='bx bxl-github'></i></a>
-                    <a href="#"><i class='bx bxl-linkedin-square'></i></a>
-                </div>
-            </form>
-        </div> -->
+        <!-- Form đăng nhập -->
         <div class="form-box login">
             <form id="login-form">
-=======
-        <div class="form-box login">
-            <form action="{{ url_for('login') }}" method="POST">
->>>>>>> 8ac558a2e86412ec41fca00119caa70705b3a272
                 <h1>Login</h1>
                 <div class="input-box">
                     <input type="text" name="username" placeholder="Username" required>
-                    <i class='bx bxs-user'></i>
+                    <i class="bx bxs-user"></i>
                 </div>
                 <div class="input-box">
                     <input type="password" name="password" placeholder="Password" required>
-                    <i class='bx bxs-lock'></i>
+                    <i class="bx bxs-lock"></i>
                 </div>
                 <div class="forgot-link">
                     <a href="#">Forgot Password</a>
@@ -62,74 +29,42 @@
                 <button type="submit" class="btn">Login</button>
                 <p>or login with social platforms</p>
                 <div class="social-icons">
-                    <a href="#"><i class='bx bxl-google'></i></a>
-                    <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-                    <a href="#"><i class='bx bxl-github'></i></a>
-                    <a href="#"><i class='bx bxl-linkedin-square'></i></a>
+                    <a href="#"><i class="bx bxl-google"></i></a>
+                    <a href="#"><i class="bx bxl-facebook-circle"></i></a>
+                    <a href="#"><i class="bx bxl-github"></i></a>
+                    <a href="#"><i class="bx bxl-linkedin-square"></i></a>
                 </div>
             </form>
         </div>
-<<<<<<< HEAD
-        
-        <!-- <div class="form-box register">
-=======
 
+        <!-- Form đăng ký -->
         <div class="form-box register">
->>>>>>> 8ac558a2e86412ec41fca00119caa70705b3a272
-            <form action="">
-                <h1>Register</h1>
-                    <div class="input-box">
-                        <input type="text" placeholder="Username" required>
-                        <i class='bx bxs-user'></i>
-                    </div>
-                    <div class="input-box">
-                        <input type="email" placeholder="Email" required>
-                        <i class='bx bxs-envelope'></i>
-                    </div>
-                    <div class="input-box">
-                        <input type="password" placeholder="Password" required>
-                        <i class='bx bxs-lock'></i>
-                    </div>
-                    <button type="submit" class="btn">Register</button>
-                    <p>or register with social platforms</p>
-                    <div class="social-icons">
-                        <a href="#"><i class='bx bxl-google' ></i></a>
-                        <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-                        <a href="#"><i class='bx bxl-github' ></i></a>
-                        <a href="#"><i class='bx bxl-linkedin-square' ></i></a>
-                    </div>
-            </form>
-<<<<<<< HEAD
-        </div> -->
-        <div class="form-box register">
-            <form action="">
+            <form action="{{ url_for('register') }}" method="POST">
                 <h1>Register</h1>
                 <div class="input-box">
                     <input type="text" name="username" placeholder="Username" required>
-                    <i class='bx bxs-user'></i>
+                    <i class="bx bxs-user"></i>
                 </div>
                 <div class="input-box">
                     <input type="email" name="email" placeholder="Email" required>
-                    <i class='bx bxs-envelope'></i>
+                    <i class="bx bxs-envelope"></i>
                 </div>
                 <div class="input-box">
                     <input type="password" name="password" placeholder="Password" required>
-                    <i class='bx bxs-lock'></i>
+                    <i class="bx bxs-lock"></i>
                 </div>
                 <button type="submit" class="btn register-btn">Register</button>
                 <p>or register with social platforms</p>
                 <div class="social-icons">
-                    <a href="#"><i class='bx bxl-google'></i></a>
-                    <a href="#"><i class='bx bxl-facebook-circle'></i></a>
-                    <a href="#"><i class='bx bxl-github'></i></a>
-                    <a href="#"><i class='bx bxl-linkedin-square'></i></a>
+                    <a href="#"><i class="bx bxl-google"></i></a>
+                    <a href="#"><i class="bx bxl-facebook-circle"></i></a>
+                    <a href="#"><i class="bx bxl-github"></i></a>
+                    <a href="#"><i class="bx bxl-linkedin-square"></i></a>
                 </div>
             </form>
         </div>
-=======
-        </div>
-        
->>>>>>> 8ac558a2e86412ec41fca00119caa70705b3a272
+
+        <!-- Toggle panel -->
         <div class="toggle-box">
             <div class="toggle-panel toggle-left">
                 <h1>Hello Wellcome</h1>
@@ -143,100 +78,75 @@
             </div>
         </div>
     </div>
-    
+
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-
-<<<<<<< HEAD
     <script>
- $(document).ready(function () {
-    $(".register-btn").click(function (e) {
-        e.preventDefault();
-
-        // Kiểm tra nếu container có class 'active' thì mới gọi hàm
-        if ($('.container').hasClass('active')) {
-            // Lấy dữ liệu từ form đăng ký
-            const username = $(".register input[name='username']").val();
-            const email = $(".register input[name='email']").val();
-            const password = $(".register input[name='password']").val();
-
-            // Kiểm tra nếu dữ liệu hợp lệ thì gửi yêu cầu POST
-            if (username && email && password) {
-                $.ajax({
-                    url: "{{ url_for('register') }}",
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        username: username,
-                        email: email,
-                        password: password
-                    }),
-                    success: function (response) {
-                        alert("Đăng ký thành công!");
-                    },
-                    error: function (error) {
-                        alert("Đăng ký thất bại, vui lòng thử lại.");
+        $(document).ready(function () {
+            $(".register-btn").click(function (e) {
+                e.preventDefault();
+                if ($('.container').hasClass('active')) {
+                    const username = $(".register input[name='username']").val();
+                    const email = $(".register input[name='email']").val();
+                    const password = $(".register input[name='password']").val();
+                    if (username && email && password) {
+                        $.ajax({
+                            url: "{{ url_for('register') }}",
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                username: username,
+                                email: email,
+                                password: password
+                            }),
+                            success: function (response) {
+                                alert("Đăng ký thành công!");
+                            },
+                            error: function (error) {
+                                alert("Đăng ký thất bại, vui lòng thử lại.");
+                            }
+                        });
+                    } else {
+                        alert("Vui lòng điền đầy đủ thông tin.");
                     }
-                });
-            } else {
-                alert("Vui lòng điền đầy đủ thông tin.");
-            }
-        }
-        else{
-            $('.container').classList.add('active');
-        }
-    });
-});
+                } else {
+                    $('.container').addClass('active');
+                }
+            });
 
-
-$(document).ready(function () {
-    $("#login-form").submit(function (e) {
-        e.preventDefault(); // Ngăn chặn hành động submit mặc định của form
-
-        // Kiểm tra nếu container không có class 'active'
-        if (!$('.container').hasClass('active')) {
-            // Lấy dữ liệu từ form đăng nhập
-            const username = $("input[name='username']").val();
-            const password = $("input[name='password']").val();
-
-            // Kiểm tra nếu dữ liệu hợp lệ thì gửi yêu cầu POST
-            if (username && password) {
-                $.ajax({
-                    url: "/login",  // Đường dẫn tuyệt đối đến API login
-                    method: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        username: username,
-                        password: password
-                    }),
-                    success: function (response) {
-                        if (response === "Login successful.") {
-                            alert("Đăng nhập thành công!");
-                            // Chuyển hướng người dùng đến trang chính
-                            window.location.href = "/";
-                        } else {
-                            alert(response); // Hiển thị thông báo lỗi từ server
-                        }
-                    },
-                    error: function (error) {
-                        alert("Đăng nhập thất bại, vui lòng thử lại.");
+            $("#login-form").submit(function (e) {
+                e.preventDefault();
+                if (!$('.container').hasClass('active')) {
+                    const username = $("input[name='username']").val();
+                    const password = $("input[name='password']").val();
+                    if (username && password) {
+                        $.ajax({
+                            url: "/login",
+                            method: "POST",
+                            contentType: "application/json",
+                            data: JSON.stringify({
+                                username: username,
+                                password: password
+                            }),
+                            success: function (response) {
+                                if (response.message === "Login successful.") {
+                                    alert("Đăng nhập thành công!");
+                                    window.location.href = "/";
+                                } else {
+                                    alert(response);
+                                }
+                            },
+                            error: function (error) {
+                                alert("Đăng nhập thất bại, vui lòng thử lại.");
+                            }
+                        });
+                    } else {
+                        alert("Vui lòng nhập đầy đủ thông tin đăng nhập.");
                     }
-                });
-            } else {
-                alert("Vui lòng nhập đầy đủ thông tin đăng nhập.");
-            }
-        }
-        else{
-            $('.container').classList.remove('active');
-        }
-    });
-});
-
-
+                } else {
+                    $('.container').removeClass('active');
+                }
+            });
+        });
     </script>
-
 </body>
-
-=======
-</body>
->>>>>>> 8ac558a2e86412ec41fca00119caa70705b3a272
 </html>

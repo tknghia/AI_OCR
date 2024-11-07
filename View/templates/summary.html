@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summary of Model</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: center;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 10px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        table {
+            width: 100%; 
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        td {
+            background-color: transparent;
+        }
+
+        tr:hover td {
+            background-color: #f1f1f1;
+        }
+
+        .content {
+            margin: 40px auto;
+            width: 80%;
+            max-width: 1000px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        a {
+            cursor: pointer;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh; /* Limit modal height */
+            overflow-y: auto; /* Enable vertical scroll if content overflows */
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Enhanced log header styles */
+        .log-header {
+            background-color: #3A9F6B;
+            color: white;
+            padding: 12px 16px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        /* Conditional styling for accuracy */
+        .accuracy-warning {
+            background-color: #FFF3CD; /* Light yellow */
+        }
+
+        .accuracy-danger {
+            background-color: #F8D7DA; /* Light red */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Report Log</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="#">Jpg to Word</a></li>
+                <li><a href="/report_log">Report Log</a></li>
+                <li><a href="/chart">Chart</a></li>
+                <li><a href="/summary">Summary</a></li>
+                <li><a href="/login">Account</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="content">
+        <h2>Summary of Model after {{ total_samples }} samples</h2>
+        <table>
+            <tr>
+                <th>Samples</th>
+                <th><a onclick="showModal('averageAccuracyModal')">Average Accuracy</a></th>
+                <th><a onclick="showModal('lossModal')">Loss (Fail)</a></th>
+            </tr>
+            <tr>
+                <td>{{ total_samples }}</td>
+                <td>{{ average_accuracy | round(2) }}%</td>
+                <td>{{ loss_percentage | round(2) }}%</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Loss (Fail) Modal -->
+    <div id="lossModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('lossModal')">&times;</span>
+            <h3>Loss (Fail) Details</h3>
+            {% for log_index in failed_samples|groupby('log_entry') %}
+                <div class="log-header">Sample no {{ log_index.grouper }}</div>
+                <table>
+                    <tr>
+                        <th>Label</th>
+                        <th>Prediction</th>
+                        <th>Accuracy</th>
+                    </tr>
+                    {% for sample in log_index.list %}
+                        <tr 
+                        {% if sample.accuracy < 70 %}
+                        class="accuracy-danger"
+                        {% elif sample.accuracy < 90 %}
+                        class="accuracy-warning"
+                        {% endif %}
+                        >
+                            <td>{{ sample.label }}</td>
+                            <td>{{ sample.prediction }}</td>
+                            <td
+                            >
+                                {{ sample.accuracy }}%
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="averageAccuracyModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('averageAccuracyModal')">&times;</span>
+            <h3>Average Accuracy Details</h3>
+            {% for log_index in correct_samples|groupby('log_entry') %}
+                <div class="log-header">Sample no {{ log_index.grouper }}</div>
+                <table>
+                    <tr>
+                        <th>Label</th>
+                        <th>Prediction</th>
+                        <th>Accuracy</th>
+                    </tr>
+                    {% for sample in log_index.list %}
+                        <tr>
+                            <td>{{ sample.label }}</td>
+                            <td>{{ sample.prediction }}</td>
+                            <td>{{ sample.accuracy }}%</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Function to show the modal
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+        }
+
+        // Function to close the modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+        }
+
+        // Close the modal when clicking outside of it
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

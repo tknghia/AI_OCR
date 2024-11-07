@@ -1,87 +1,33 @@
 import os
-from flask import Flask, render_template, request, jsonify,session,url_for,redirect
 import sys
-#import for chart and report_log
-import io  # Thêm 
 import base64
-import matplotlib
-matplotlib.use('Agg')  # Sử dụng backend không GUI
-import docx
+import io
+from flask import Flask, render_template, request, jsonify, session, url_for, redirect
+from docx import Document
 from matplotlib import pyplot as plt
-# import threading
-import time
-from queue import Queue
-import nbformat
-from nbconvert import PythonExporter
-from nbconvert.preprocessors import ExecutePreprocessor
 
+# Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 sys.path.append(project_root)
-from Controller.controller import ImageController, FileController , AuthController
+
+# Import controllers
+from Controller.controller import ImageController, FileController, AuthController, MongoController
 
 app = Flask(__name__)
-app.secret_key="thisismysecretkeyforthisapp"
+app.secret_key = "thisismysecretkeyforthisapp"
+
 # Initialize controllers
 image_controller = ImageController()
 file_controller = FileController()
-auth_controller=AuthController()
-# Training queue and thread
-# training_queue = Queue()
-# training_thread = None
-
-import os
-import time
-import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
-
-# def train_model():
-#     while True:
-#         # Wait for a training task
-#         task = training_queue.get()
-#         if task is None:
-#             break
-        
-#         print("Starting model training...")
-#         # Ở đây, bạn sẽ chạy mã training từ Jupyter notebook của bạn
-        
-#         current_dir = os.path.dirname(os.path.abspath(__file__))
-#         project_root = os.path.dirname(current_dir)
-#         notebook_path = os.path.join(project_root, 'idvn-ocr.ipynb')
-#         # Đọc nội dung notebook
-#         with open(notebook_path, 'r', encoding='utf-8') as file:
-#             notebook_content = nbformat.read(file, as_version=4)
-
-#         # Sử dụng ExecutePreprocessor để thực thi notebook
-#         ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
-#         ep.preprocess(notebook_content, {'metadata': {'path': project_root}})
-
-#         time.sleep(10)  # Giả lập thời gian training
-#         print("Model training completed")
-        
-#         training_queue.task_done()
-
-# def start_training_thread():
-#     global training_thread
-#     if training_thread is None or not training_thread.is_alive():
-#         training_thread = threading.Thread(target=train_model)
-#         training_thread.start()
+auth_controller = AuthController()
+mongo_controller = MongoController()
 
 @app.route('/')
 def index():
-    # Kiểm tra nếu người dùng đã đăng nhập
-    if 'logged_in' in session and session['logged_in']:
+    if session.get('logged_in'):
         return render_template('index.html')
-    else:
-        # Chuyển hướng đến trang đăng nhập nếu chưa đăng nhập
-        return redirect(url_for('login')) 
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        return redirect(url_for('index'))
-
-    return render_template('login.html')
+    return redirect(url_for('login'))
 
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
@@ -97,111 +43,186 @@ def download():
 def save():
     labels = request.json.get('labels', [])
     result_id = request.json.get('result_id', '')
-    # Lưu labels
-    result = file_controller.save_labels(labels, result_id)
-    # Thêm task training vào queue
-    # training_queue.put(True)
-    
-    # Đảm bảo thread training đang chạy
-    # start_training_thread()
-    
+    user_id=session['user_id']
+    result = file_controller.save_labels(labels, result_id,user_id)
     return result
 
-# Hàm đọc file Word
 def read_word_file(file_path):
-    doc = docx.Document(file_path)
-    all_tables_data = []  # Danh sách chứa tất cả các bảng
-    
-    # Đọc từng bảng trong file Word
-    for table in doc.tables:
-        table_data = []  # Danh sách chứa dữ liệu cho bảng hiện tại
-        for row in table.rows:
-            row_data = [cell.text for cell in row.cells]
-            table_data.append(row_data)
-        all_tables_data.append(table_data)  # Thêm bảng hiện tại vào danh sách
-    return all_tables_data  # Trả về danh sách các bảng
+    doc = Document(file_path)
+    return [[cell.text for cell in row.cells] for table in doc.tables for row in table.rows]
 
 @app.route('/report_log')
 def report_log():
-    # Đọc dữ liệu từ file Word
-    file_path = "D:/Downloads/Logs.docx"  # Thay bằng đường dẫn thật đến file của bạn
-    if os.path.exists(file_path):
-        word_data = read_word_file(file_path)
+    # Check if the user is logged in and has a user_id in the session
+    user_id = session.get('user_id')
+    if user_id:
+        # Retrieve logs made by this user
+        logs = mongo_controller.get_predictions_by_user_id(user_id)
+        
+        if isinstance(logs, str):  # If the result is an error message
+            return logs, 404
+        
+        # Process logs into a format suitable for rendering
+        processed_logs = []
+        for log in logs:
+            processed_log = {
+                "upload_time": log.get("upload_time"),
+                "average_accuracy": log.get("average_accuracy"),
+                "samples": [
+                    {
+                        "index": idx + 1,
+                        "label": image.get("label", ""),
+                        "prediction": image.get("prediction", ""),
+                        "accuracy": image.get("accuracy", "")
+                    }
+                    for idx, image in enumerate(log.get("list_images", []))
+                ]
+            }
+            processed_logs.append(processed_log)
+        
+        return render_template('report_log.html', logs=processed_logs)
 
-        # Render trang HTML với dữ liệu từ file Word
-        return render_template('report_log.html', tables=word_data)
-    else:
-        return "Log file not found.", 404
+    return "User not logged in or no user_id found in session.", 403
+
 
 @app.route('/chart')
 def view_chart():
-    # Danh sách samples
-    samples = ['Sample 1', 'Sample 2', 'Sample 3', 'Sample 4', 'Sample 5', 'Sample 6', 'Sample 7', 'Sample 8']
-    
-    # Dữ liệu cho từng sample
-    simple_similarity = [82.72, 98.03, 75.00, 85.50, 90.00, 78.00, 95.00, 88.50]
-    levenshtein_similarity = [94.19, 98.35, 90.00, 92.50, 95.00, 80.00, 97.00, 89.00]
+    # Retrieve the user ID from the session
+    user_id = session.get('user_id')
+    if not user_id:
+        return "User not logged in.", 403
 
-    # Vẽ biểu đồ đường
-    plt.figure(figsize=(12, 6))  # Thay đổi kích thước nếu cần
-    
-    # Vẽ đường cho Average Simple Similarity
-    plt.plot(samples, simple_similarity, marker='o', label='Average Simple Similarity', color='blue')
-    # Vẽ đường cho Average Levenshtein Similarity
-    plt.plot(samples, levenshtein_similarity, marker='o', label='Average Levenshtein Similarity', color='red')
-    
+    # Get all logs for the user
+    logs = mongo_controller.get_predictions_by_user_id(user_id)
+    if isinstance(logs, str):
+        return logs, 404  # If an error message was returned
+
+    # Calculate average accuracy and loss for each log entry
+    samples = []
+    average_accuracies = []
+    loss_percentages = []
+
+    for log_index, log in enumerate(logs, start=1):
+        total_accuracy = 0
+        total_samples = len(log.get("list_images", []))
+
+        for image in log.get("list_images", []):
+            accuracy = image.get("accuracy", 0)
+            total_accuracy += accuracy
+
+        if total_samples > 0:
+            average_accuracy = total_accuracy / total_samples
+            loss_percentage = 100 - average_accuracy
+        else:
+            average_accuracy = 0
+            loss_percentage = 0
+
+        # Append data for chart
+        samples.append(f'Sample #{log_index}')
+        average_accuracies.append(average_accuracy)
+        loss_percentages.append(loss_percentage)
+
+    # Generate the plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(samples, average_accuracies, marker='o', label='Average Accuracy (%)', color='blue')
+    plt.plot(samples, loss_percentages, marker='o', label='Loss Percentage (%)', color='red')
     plt.xlabel('Samples')
-    plt.ylabel('Similarity (%)')
-    plt.title('Comparison of Similarity Metrics')
+    plt.ylabel('Percentage (%)')
+    plt.title('Average Accuracy and Loss Percentage by Log Entry')
     plt.legend()
     plt.grid(True)
-    
-    # Lưu biểu đồ vào buffer và chuyển đổi thành base64
-    plt.tight_layout()
+
+    # Convert plot to PNG image
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
-    image_png = buf.getvalue()
+    graph_url = base64.b64encode(buf.getvalue()).decode('utf-8')
     buf.close()
-    graph_url = base64.b64encode(image_png).decode('utf-8')
 
+    # Pass the chart to the HTML template
     return render_template('chart.html', graph_url=graph_url)
+
 
 @app.route('/register', methods=["POST"])
 def register():
-    # Lấy dữ liệu JSON từ yêu cầu POST
     data = request.get_json()
-    # Gọi hàm register trong auth_controller với dữ liệu người dùng
     result = auth_controller.register(data)
-
-    # Trả về kết quả của hàm register dưới dạng JSON
     return jsonify(result)
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        if request.is_json:
-            data = request.get_json()
-            username = data.get("username")
-            password = data.get("password")
-        else:
-            username = request.form.get("username")
-            password = request.form.get("password")
+        data = request.get_json() if request.is_json else request.form
+        result = auth_controller.login(data.get("username"), data.get("password"))
         
-        # Gọi hàm login trong auth_controller với dữ liệu người dùng
-        result = auth_controller.login(username, password)
-
-        if result == "Login successful.":
-            # Lưu thông tin đăng nhập vào session
+        # Check for a successful login response with user_id
+        if result.get("message") == "Login successful.":
             session['logged_in'] = True
-            session['username'] = username
-            return jsonify(result)
-        else:
-            return jsonify({"error": result}), 401
+            session['username'] = data.get("username")
+            session['user_id'] = result.get("user_id")  # Store user ID in the session
+            return jsonify({"message": result["message"], "user_id": result["user_id"]})
+        
+        # Return error response if login failed
+        return jsonify({"error": result.get("error")}), 401
+
+    return render_template("login.html")
+
+@app.route('/summary')
+def summary_of_model():
+    # Retrieve the user ID from the session
+    user_id = session.get('user_id')
+    if not user_id:
+        return "User not logged in.", 403
+
+    # Get all logs for the user
+    logs = mongo_controller.get_predictions_by_user_id(user_id)
+    if isinstance(logs, str):
+        return logs, 404  # If an error message was returned
+
+    # Calculate average accuracy and loss
+    total_accuracy = 0
+    total_samples = 0
+    failed_samples = []
+    correct_samples = []
+
+    # Loop through logs with entry number
+    for log_index, log in enumerate(logs, start=1):
+        for image in log.get("list_images", []):
+            accuracy = image.get("accuracy", 0)
+            total_accuracy += accuracy
+            total_samples += 1  # Increment total_samples for each sample processed
+            
+            sample_info = {
+                "log_entry": log_index,  # Add log entry number
+                "label": image.get("label"),
+                "prediction": image.get("prediction"),
+                "accuracy": accuracy
+            }
+            
+            # Separate correct and failed samples
+            if accuracy < 100:
+                failed_samples.append(sample_info)
+            else:
+                correct_samples.append(sample_info)
+
+    # Calculate average accuracy and loss percentage
+    if total_samples > 0:
+        average_accuracy = total_accuracy / total_samples
+        loss_percentage = 100-average_accuracy
     else:
-        return render_template("login.html")
+        average_accuracy = 0
+        loss_percentage = 0
+
+    # Pass the calculated data and samples to the template
+    return render_template('summary.html', total_samples=len(logs), 
+                           average_accuracy=average_accuracy, 
+                           loss_percentage=loss_percentage, 
+                           failed_samples=failed_samples,
+                           correct_samples=correct_samples
+                           )
+
+
 
 
 if __name__ == '__main__':
-    # start_training_thread()
     app.run(host="0.0.0.0", port=5001, debug=False)
