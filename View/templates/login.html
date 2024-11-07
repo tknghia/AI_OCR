@@ -102,7 +102,7 @@
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function (){
             $(".register-btn").click(function (e) {
                 e.preventDefault();
                 if ($('.container').hasClass('active')) {
@@ -133,6 +133,7 @@
                     $('.container').addClass('active');
                 }
             });
+        });
         $(document).ready(function () {
             $(".register-btn").click(function (e) {
                 e.preventDefault();
@@ -202,4 +203,3 @@
     </script>
 </body>
 </html>
-

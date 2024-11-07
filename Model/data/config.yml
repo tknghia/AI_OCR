@@ -31,7 +31,7 @@ dataloader:
   num_workers: 0
   pin_memory: true
 dataset:
-  data_root: d:\PJ\AI_OCR\Model\dataset
+  data_root: d:\PJ\AI_OCR22\Model\dataset
   image_height: 32
   image_max_width: 512
   image_min_width: 32
@@ -54,7 +54,7 @@ trainer:
     min_delta: 0.001
     patience: 20
   export: ./Model/data/my_model.pth
-  iters: 2000
+  iters: 1000
   log: ./train.log
   lr_scheduler:
     factor: 0.1
@@ -62,7 +62,7 @@ trainer:
     verbose: true
   metrics: 200
   print_every: 50
-  valid_every: 500
+  valid_every: 250
 transformer:
   d_model: 256
   dim_feedforward: 2048

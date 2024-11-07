@@ -5,6 +5,12 @@ import io
 from flask import Flask, render_template, request, jsonify, session, url_for, redirect
 from docx import Document
 from matplotlib import pyplot as plt
+import threading
+import time
+from queue import Queue
+import nbformat
+from nbconvert import PythonExporter
+from nbconvert.preprocessors import ExecutePreprocessor
 
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,6 +28,42 @@ image_controller = ImageController()
 file_controller = FileController()
 auth_controller = AuthController()
 mongo_controller = MongoController()
+
+
+# Training queue and thread
+training_queue = Queue()
+training_thread = None
+def train_model():
+    while True:
+        # Wait for a training task
+        task = training_queue.get()
+        if task is None:
+            break
+        
+        print("Starting model training...")
+        # Ở đây, bạn sẽ chạy mã training từ Jupyter notebook của bạn
+        
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        notebook_path = os.path.join(project_root, 'idvn-ocr.ipynb')
+        # Đọc nội dung notebook
+        with open(notebook_path, 'r', encoding='utf-8') as file:
+            notebook_content = nbformat.read(file, as_version=4)
+
+        # Sử dụng ExecutePreprocessor để thực thi notebook
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+        ep.preprocess(notebook_content, {'metadata': {'path': project_root}})
+
+        time.sleep(10)  # Giả lập thời gian training
+        print("Model training completed")
+        
+        training_queue.task_done()
+
+def start_training_thread():
+    global training_thread
+    if training_thread is None or not training_thread.is_alive():
+        training_thread = threading.Thread(target=train_model)
+        training_thread.start()
 
 @app.route('/')
 def index():
@@ -48,6 +90,10 @@ def save():
     result_id = request.json.get('result_id', '')
     user_id=session['user_id']
     result = file_controller.save_labels(labels, result_id,user_id)
+    # Thêm task training vào queue
+    training_queue.put(True)
+    # Đảm bảo thread training đang chạy
+    start_training_thread()
     return result
 
 def read_word_file(file_path):
@@ -228,4 +274,5 @@ def summary_of_model():
 
 
 if __name__ == '__main__':
+    start_training_thread()
     app.run(host="0.0.0.0", port=5001, debug=False)

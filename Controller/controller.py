@@ -15,6 +15,7 @@ from flask import send_file, jsonify
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from bson import ObjectId
+import shutil
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -521,26 +522,98 @@ class FileController:
         with open(file_path, "w", encoding='utf-8') as file:
             file.writelines(updated_lines)
 
+    def transfer_data(self, datapath):
+        """
+        Chuyển dữ liệu từ output_dir sang dataset_dir
+        nếu file train.txt trong output_dir có >= 100 dòng.
+        """
+        output_train_path = os.path.join(datapath, 'output_images', 'train.txt')
+        output_test_path = os.path.join(datapath, 'output_images', 'test.txt')
+        
+        # Kiểm tra số dòng trong file train.txt
+        with open(output_train_path, 'r', encoding='utf-8') as f:
+            num_lines = len(f.readlines())
+        
+        if num_lines >= 100:
 
-    def save_labels(self, labels, result_id,user_id=None):
+            # Chuyển dữ liệu từ train.txt và test.txt
+            dataset_train_path = os.path.join(datapath, 'origin_dataset', 'train.txt')
+            dataset_test_path = os.path.join(datapath, 'origin_dataset', 'test.txt')
+            
+            with open(dataset_train_path, 'a',encoding='utf-8') as dataset_train, \
+                open(output_train_path, 'r',encoding='utf-8') as output_train:
+                dataset_train.write(output_train.read())
+        
+            with open(dataset_test_path, 'a',encoding='utf-8') as dataset_test, \
+                open(output_test_path, 'r',encoding='utf-8') as output_test:
+                dataset_test.write(output_test.read())
+            
+            # Reset file train.txt và test.txt trong output_dir
+            open(output_train_path, 'w', encoding='utf-8').close()
+            open(output_test_path, 'w', encoding='utf-8').close()
+
+            # Chuyển ảnh từ output_dir sang dataset_dir
+            # Chuyển tất cả file ảnh từ output_images sang origin_dataset
+            output_images_dir=os.path.join(datapath, 'output_images')
+            origin_dataset_dir=os.path.join(datapath, 'origin_dataset')
+            for filename in os.listdir(output_images_dir):
+                if filename.endswith('.png') or filename.endswith('.jpg') or filename.endswith('.jpeg'):
+                    src = os.path.join(output_images_dir, filename)
+                    dst = os.path.join(origin_dataset_dir, filename)
+                    shutil.move(src, dst)
+    def save_labels(self, labels, result_id, user_id=None):
         log_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "train.txt")
+        test_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "test.txt")
         old_result = self.mongo_controller.select_prediction_by_id(result_id)
-
+        # Ensure the folder exists
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-        self.update_file(log_file_path, old_result, labels)
 
+        # Get the list of images
+        images = old_result["list_images"]
+        
+        # Calculate split point at 20% of data
+        total_samples = len(labels)
+        split_point = int(total_samples * 0.3)
+        
+        # Split both images and labels synchronously
+        test_images = images[:split_point]
+        test_labels = labels[:split_point]
+        
+        train_images = images
+        train_labels = labels
+        
+        # Create temporary results for test and train
+        test_result = old_result.copy()
+        test_result["list_images"] = test_images
+        
+        train_result = old_result.copy()
+        train_result["list_images"] = train_images
+        
+        # Update test.txt with first 20% of data
+        self.update_file(test_file_path, test_result, test_labels)
+        
+        # Update train.txt with remaining 80% of data
+        self.update_file(log_file_path, train_result, train_labels)
+
+        # Process comparison with original predictions
         if not old_result:
             return jsonify({"status": "error", "message": "Invalid result ID"}), 400
 
         wrong_labels = old_result['predictions'].split("\n")
         comparison_results = self.compare_labels(wrong_labels, labels)
+        #check size output images
+        datapath=os.path.join(project_root, "Model", "dataset")
+        self.transfer_data(datapath)
+
+        # Calculate average correctness percentage
         avg_simple_similarity = sum(r['simple_similarity'] for r in comparison_results) / len(comparison_results)
         avg_levenshtein_similarity = sum(r['levenshtein_similarity'] for r in comparison_results) / len(comparison_results)
 
+        # Save comparison to word document
         self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity, "Logs.docx")
         self.calculate_avg_levenshtein_similarity("Logs.docx")
-        self.mongo_controller.update_labels(result_id, labels,user_id)
-
+        self.mongo_controller.update_labels(result_id, labels, user_id)
+        
         return jsonify({
             "status": "success",
             "avg_simple_similarity": avg_simple_similarity,
