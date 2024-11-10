@@ -356,12 +356,16 @@ class ImageController:
                     filename = f"{timestamp}_{segment['id']}.png"
                     filepath = os.path.join(output_dir, filename)
                     Image.fromarray(np.uint8(segment["roi"])).save(filepath)
-                    cropped_images_metadata.append({"filename": filename, "label": None})
+                    # cropped_images_metadata.append({"filename": filename, "label": None})
+                    cropped_images_metadata.append({"filename": filename, "label": segment["type"]})
 
                 for segment in arr:
                     image_rgb = cv2.cvtColor(np.asarray(segment["roi"]), cv2.COLOR_BGR2RGB)
                     image_pil = Image.fromarray(image_rgb)
-                    all_predictions.append(vietocr_module.vietOCR_prediction(image_pil))
+                    prediction = vietocr_module.vietOCR_prediction(image_pil)
+                
+                    # Append label and prediction in "label: prediction" format
+                    all_predictions.append(f"{segment['type']}: {prediction}")
             else:
                 image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
                 image_pil = Image.fromarray(image_rgb)
