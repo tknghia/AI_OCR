@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from bson import ObjectId
 import shutil
+from sklearn.model_selection import train_test_split
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -554,8 +555,12 @@ class FileController:
         return send_file(buffer, as_attachment=True, download_name='processed_content.doc', mimetype='application/msword')
     
     def update_file(self, file_path, old_result, labels):
-    # Map images to labels
-        images_labels = {os.path.basename(img["filename"]): label for img, label in zip(old_result["list_images"], labels)}
+        # Map images to labels and accuracies
+        images_labels = {os.path.basename(img["filename"]): label 
+                        for img, label in zip(old_result["list_images"], labels)}
+        acc_labels = {os.path.basename(img["filename"]): img["accuracy"] 
+                    for img in old_result["list_images"]}
+        
         updated_lines = []
 
         if os.path.exists(file_path):
@@ -574,20 +579,28 @@ class FileController:
 
                 filename, old_label = parts
                 if filename in images_labels:
-                    # Update line if filename matches
-                    updated_lines.append(f"{filename}\t{images_labels[filename]}\n")
-                    existing_filenames.add(filename)
+                    # Chỉ cập nhật những dòng có accuracy < 100
+                    if acc_labels[filename] < 100:
+                        updated_lines.append(f"{filename}\t{images_labels[filename]}\n")
+                        existing_filenames.add(filename)
+                    else:
+                        # Giữ nguyên nhãn cũ nếu accuracy = 100
+                        updated_lines.append(line + "\n")
                 else:
                     # Keep the line as-is if filename doesn't match
                     updated_lines.append(line + "\n")
 
-            # Add new images that were not in the file
+            # Add new images that were not in the file and have accuracy < 100
             for filename, label in images_labels.items():
-                if filename not in existing_filenames:
+                if filename not in existing_filenames and acc_labels[filename] < 100:
                     updated_lines.append(f"{filename}\t{label}\n")
         else:
-            # Create lines from scratch if file doesn't exist
-            updated_lines = [f"{os.path.basename(img['filename'])}\t{label}\n" for img, label in zip(old_result["list_images"], labels)]
+            # Create lines from scratch if file doesn't exist, only for accuracy < 100
+            updated_lines = [
+                f"{os.path.basename(img['filename'])}\t{label}\n"
+                for img, label in zip(old_result["list_images"], labels)
+                if img["accuracy"] < 100
+            ]
 
         # Write back to the file
         with open(file_path, "w", encoding='utf-8') as file:
@@ -632,39 +645,50 @@ class FileController:
                     src = os.path.join(output_images_dir, filename)
                     dst = os.path.join(origin_dataset_dir, filename)
                     shutil.move(src, dst)
+    
+    def clean_file(self, file_path):
+        keywords_to_remove = [
+        'current_places:', 'dob:', 'expire_date:', 'gender:', 
+        'id:', 'name:', 'nationality:', 'origin_place:',
+        'address:', 'code:', 'dob:', 'doi:', 'exp:', 
+        'gender:', 'idcard:', 'mrz1:', 'mrz2:', 'name:', 
+        'nation:', 'nationality:', 'poi:', 'birth:', 'class:', 
+        'day:', 'expiry:', 'month:', 'number:', 'place:', 'year:'
+        ]
+        
+        try:
+            # Đọc và xử lý file
+            with open(file_path, 'r', encoding='utf-8') as file:
+                lines = [line.strip() for line in file if line.strip()]
+                cleaned_lines = []
+                for line in lines:
+                    if '\t' in line:
+                        filename, text = line.split('\t', 1)
+                        
+                        # Xóa các từ khóa khỏi text
+                        for keyword in keywords_to_remove:
+                            text = text.replace(keyword, '').strip()
+                        
+                        cleaned_lines.append(f"{filename}\t{text}")
+                    else:
+                        cleaned_lines.append(line)
+            
+            # Ghi đè lại file
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write('\n'.join(cleaned_lines))
+            
+            print(f"Đã xử lý xong file: {file_path}")
+            
+        except Exception as e:
+            print(f"Có lỗi xảy ra: {str(e)}")
+
+
     def save_labels(self, labels, result_id, user_id=None):
         log_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "train.txt")
         test_file_path = os.path.join(project_root, "Model", "dataset", "output_images", "test.txt")
         old_result = self.mongo_controller.select_prediction_by_id(result_id)
         # Ensure the folder exists
         os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
-
-        # Get the list of images
-        images = old_result["list_images"]
-        
-        # Calculate split point at 20% of data
-        total_samples = len(labels)
-        split_point = int(total_samples * 0.3)
-        
-        # Split both images and labels synchronously
-        test_images = images[:split_point]
-        test_labels = labels[:split_point]
-        
-        train_images = images
-        train_labels = labels
-        
-        # Create temporary results for test and train
-        test_result = old_result.copy()
-        test_result["list_images"] = test_images
-        
-        train_result = old_result.copy()
-        train_result["list_images"] = train_images
-        
-        # Update test.txt with first 20% of data
-        self.update_file(test_file_path, test_result, test_labels)
-        
-        # Update train.txt with remaining 80% of data
-        self.update_file(log_file_path, train_result, train_labels)
 
         # Process comparison with original predictions
         if not old_result:
@@ -683,7 +707,28 @@ class FileController:
         # Save comparison to word document
         self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity, "Logs.docx")
         self.calculate_avg_levenshtein_similarity("Logs.docx")
-        self.mongo_controller.update_labels(result_id,comparison_results, user_id)
+        self.mongo_controller.update_labels(result_id,comparison_results, user_id) 
+        
+        # Get the list of images
+        old_result = self.mongo_controller.select_prediction_by_id(result_id)
+        images = old_result["list_images"]
+        
+        train_images, test_images, train_labels, test_labels = train_test_split(images, labels, test_size=0.3, random_state=42)
+
+        # Create temporary results for test and train
+        test_result = old_result.copy()
+        test_result["list_images"] = test_images
+        
+        train_result = old_result.copy()
+        train_result["list_images"] = train_images
+        
+        # Update test.txt with first 20% of data
+        self.update_file(test_file_path, test_result, test_labels)
+        
+        # Update train.txt with remaining 80% of data
+        self.update_file(log_file_path, train_result, train_labels)
+        self.clean_file(log_file_path)
+        self.clean_file(test_file_path)
         
         return jsonify({
             "status": "success",
