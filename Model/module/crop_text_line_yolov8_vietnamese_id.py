@@ -145,7 +145,7 @@ def extract_image_segments(cv_image):
     img_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
 
     # Perform detection using YOLOv8
-    results = model(img_rgb, conf=0.4)
+    results = model(img_rgb, conf=0.6)
 
     # Initialize lists and dictionaries
     ordered_segments = []

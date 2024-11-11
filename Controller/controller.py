@@ -49,14 +49,18 @@ class MongoController:
             return f"Error retrieving prediction: {e}"
         
     def get_predictions_by_user_id(self, user_id):
-        try:
-            query = {"user_id": user_id}
-            logs = self.log_collection.find(query)
-            log_list = list(logs)
-            return log_list if log_list else f"No logs found for user with id: {user_id}"
-        except Exception as e:
-            print(f"Error retrieving logs for user with id {user_id}: {e}")
-            return f"Error retrieving logs: {e}"
+            try:
+                # Query to match documents that contain 'user_id' and 'average_accuracy' fields
+                query = {
+                    "user_id": user_id,
+                    "average_accuracy": {"$exists": True}  # Only include logs that have 'average_accuracy' field
+                }
+                logs = self.log_collection.find(query)
+                log_list = list(logs)
+                return log_list  # Always return a list, even if empty
+            except Exception as e:
+                print(f"Error retrieving logs for user with id {user_id}: {e}")
+                return []  # Return an empty list in case of error
 
     def log_predictions(self, predictions, upload_time, list_images, userId=None):
         try:
@@ -75,7 +79,7 @@ class MongoController:
             print(f"Error writing to MongoDB: {e}")
             return None
 
-    def update_labels(self, object_id, list_labels, user_id=None):
+    def update_labels(self, object_id,comparison_results,user_id=None):
         try:
             query = {"_id": ObjectId(object_id)}
             document = self.log_collection.find_one(query)
@@ -84,29 +88,22 @@ class MongoController:
                 print(f"No document found with id: {object_id}")
                 return
 
-            wrong_labels = document['predictions'].split("\n")
-            if len(list_labels) != len(document['list_images']):
-                print("Length of list_labels does not match length of list_images")
-                return
+            
+            avg_levenshtein_similarity = sum(r['levenshtein_similarity'] for r in comparison_results) / len(comparison_results) * 100
 
-            total_accuracy = 0
-            for i, label in enumerate(list_labels):
-                original_label = document['list_images'][i].get('label') or wrong_labels[i]
-                accuracy = FileController.levenshtein_similarity(original_label, label) * 100
-                total_accuracy += accuracy
-
+            for i, compare in enumerate(comparison_results):
                 update_data = {
-                    f"list_images.{i}.label": label,
-                    f"list_images.{i}.prediction": wrong_labels[i],
-                    f"list_images.{i}.accuracy": accuracy
+                    f"list_images.{i}.label": compare["correct"],
+                    f"list_images.{i}.prediction": compare["wrong"],
+                    f"list_images.{i}.accuracy": compare["levenshtein_similarity"]*100
                 }
+
 
                 # Update label, prediction, and accuracy for each image
                 self.log_collection.update_one({"_id": ObjectId(object_id)}, {"$set": update_data})
 
             # Calculate and update average accuracy
-            average_accuracy = total_accuracy / len(list_labels)
-            update_data = {"average_accuracy": average_accuracy}
+            update_data = {"average_accuracy": avg_levenshtein_similarity}
 
             # If user_id exists, add it to the update data
             if user_id is not None:
@@ -161,6 +158,63 @@ class MongoController:
         except Exception as e:
             print(f"An error occurred while retrieving items with incomplete accuracy: {e}")
             return []
+        
+
+    def update_kyc_info(self, user_id, kyc_info):
+        try:
+            # Kiểm tra xem user có tồn tại không
+            query = {"_id": ObjectId(user_id)}
+            user = self.collection_users.find_one(query)
+
+            if not user:
+                print(f"No user found with id: {user_id}")
+                return {"error": "User not found"}
+
+            # Chuyển đổi 'kyc_info' từ danh sách sang từ điển nếu cần
+            if isinstance(kyc_info, list):
+                kyc_dict = {}
+                current_place_values = []  # List để chứa các giá trị của current_place
+                for item in kyc_info:
+                    # Split thành key-value (giả định mỗi mục theo dạng "key: value")
+                    key_value = item.split(": ", 1)
+                    if len(key_value) == 2:
+                        key = key_value[0].strip().lower().replace(" ", "_")
+                        value = key_value[1].strip()
+                        
+                        # Kiểm tra nếu key là 'current_places'
+                        if key == 'current_places':
+                            current_place_values.append(value)
+                        else:
+                            kyc_dict[key] = value
+
+                # Kết hợp các giá trị 'current_place' thành một chuỗi duy nhất
+                combined_current_place = " ".join(current_place_values)
+                kyc_dict['current_places'] = combined_current_place
+
+            else:
+                kyc_dict = kyc_info
+
+            # Cập nhật các trường thông tin KYC
+            update_fields = {
+                "is_kyc": True,  # Đặt is_kyc là True khi cập nhật thông tin KYC
+                "id_card": kyc_dict.get('id', user.get('id_card', "")),
+                "original_place": kyc_dict.get('origin_place', user.get('original_place', "")),
+                "dob": kyc_dict.get('dob', user.get('dob', "")),
+                "current_place": kyc_dict.get('current_places', user.get('current_place', "")),
+                "nationality": kyc_dict.get('nationality', user.get('nationality', "")),
+                "gender": kyc_dict.get('gender', user.get('gender', "")),
+                "expire_date": kyc_dict.get('expire_date', user.get('expire_date', ""))
+            }
+
+            # Cập nhật thông tin trong collection
+            self.collection_users.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})
+            print(f"KYC information for user with id {user_id} updated successfully.")
+            return {"message": "KYC information updated successfully"}
+
+        except Exception as e:
+            print(f"An error occurred while updating KYC information for user with id {user_id}: {e}")
+            return {"error": f"An error occurred: {e}"}
+
 
 class AuthController:
     mongo_controller = MongoController()
@@ -323,55 +377,57 @@ class ImageController:
 
     @staticmethod
     def convert_images(files,type):
-        all_predictions = []
-        cropped_images_metadata = []
+            all_predictions = []
+            cropped_images_metadata = []
 
-        for file in files:
-            img = Image.open(file)
-            cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-            rotated_image = ImageController.detect_logo_and_rotate(cv_image)
-            enhanced_image = ImageController.adjust_image_brightness(rotated_image)
+            for file in files:
+                img = Image.open(file)
+                cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+                rotated_image = ImageController.detect_logo_and_rotate(cv_image)
+                enhanced_image = ImageController.adjust_image_brightness(rotated_image)
 
 
-            height, width = enhanced_image.shape[:2]
-            if height > 55:
-                # Perform segmentation and OCR prediction
-                # Kiểm tra loại tài liệu
-                if type == "Passport":
-                    # Sử dụng YOLOv8 cho Passport
-                    arr = Passport.extract_image_segments(enhanced_image)
-                elif type =="GPLX":
-                    arr=DriverLicense.extract_image_segments(enhanced_image)
-                elif type =="CCCD":
-                    arr=VietnameId.extract_image_segments(enhanced_image)
-                elif type == "Khác":
-                    # Sử dụng PaddleOCR cho các loại khác
-                    arr = segmentsPaddle.extract_image_segments(enhanced_image)
-                current_dir = os.path.dirname(os.path.abspath(__file__))
-                output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
-                os.makedirs(output_dir, exist_ok=True)
+                height, width = enhanced_image.shape[:2]
+                if height > 55:
+                    # Perform segmentation and OCR prediction
+                    # Kiểm tra loại tài liệu
+                    if type == "Passport":
+                        # Sử dụng YOLOv8 cho Passport
+                        arr = Passport.extract_image_segments(enhanced_image)
+                    elif type =="GPLX":
+                        arr=DriverLicense.extract_image_segments(enhanced_image)
+                    elif type =="CCCD":
+                        arr=VietnameId.extract_image_segments(enhanced_image)
+                    elif type == "Khác":
+                        # Sử dụng PaddleOCR cho các loại khác
+                        arr = segmentsPaddle.extract_image_segments(enhanced_image)
+                    current_dir = os.path.dirname(os.path.abspath(__file__))
+                    output_dir = os.path.join(os.path.dirname(current_dir), 'Model', 'dataset', 'output_images')
+                    os.makedirs(output_dir, exist_ok=True)
 
-                for segment in arr:
-                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
-                    filename = f"{timestamp}_{segment['id']}.png"
-                    filepath = os.path.join(output_dir, filename)
-                    Image.fromarray(np.uint8(segment["roi"])).save(filepath)
-                    # cropped_images_metadata.append({"filename": filename, "label": None})
-                    cropped_images_metadata.append({"filename": filename, "label": segment["type"]})
+                    for segment in arr:
+                        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+                        filename = f"{timestamp}_{segment['id']}.png"
+                        filepath = os.path.join(output_dir, filename)
+                        Image.fromarray(np.uint8(segment["roi"])).save(filepath)
+                        # cropped_images_metadata.append({"filename": filename, "label": None})
+                        cropped_images_metadata.append({"filename": filename, "label": segment["type"] if type != "Khác" else None})
 
-                for segment in arr:
-                    image_rgb = cv2.cvtColor(np.asarray(segment["roi"]), cv2.COLOR_BGR2RGB)
+                    for segment in arr:
+                        image_rgb = cv2.cvtColor(np.asarray(segment["roi"]), cv2.COLOR_BGR2RGB)
+                        image_pil = Image.fromarray(image_rgb)
+                        prediction = vietocr_module.vietOCR_prediction(image_pil)
+                        if type == "Khác":
+                            all_predictions.append(f"{prediction}")
+                        # Append label and prediction in "label: prediction" format
+                        else: 
+                            all_predictions.append(f"{segment['type']}: {prediction}")
+                else:
+                    image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
                     image_pil = Image.fromarray(image_rgb)
-                    prediction = vietocr_module.vietOCR_prediction(image_pil)
-                
-                    # Append label and prediction in "label: prediction" format
-                    all_predictions.append(f"{segment['type']}: {prediction}")
-            else:
-                image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                image_pil = Image.fromarray(image_rgb)
-                all_predictions.append(vietocr_module.vietOCR_prediction(image_pil))
+                    all_predictions.append(vietocr_module.vietOCR_prediction(image_pil))
 
-        return '\n'.join(all_predictions), cropped_images_metadata
+            return '\n'.join(all_predictions), cropped_images_metadata
 
     def process_images(self, files,type, userId=None):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -467,8 +523,18 @@ class FileController:
     def simple_string_similarity(s1, s2):
         return sum(c1 == c2 for c1, c2 in zip(s1, s2)) / max(len(s1), len(s2))
 
+
+
+    @staticmethod
+    def normalize_string(s):
+        # Loại bỏ ký tự không hiển thị và khoảng trắng thừa
+        s = re.sub(r'\s+', ' ', s)  # Thay thế các khoảng trắng liên tiếp bằng 1 khoảng trắng
+        return s.strip()
+
     @classmethod
     def compare_labels(cls, wrong_labels, labels):
+        normalized_wrong_labels = [cls.normalize_string(wrong) for wrong in wrong_labels]
+        normalized_labels = [cls.normalize_string(correct) for correct in labels]
         return [
             {
                 'wrong': wrong,
@@ -476,8 +542,9 @@ class FileController:
                 'simple_similarity': cls.simple_string_similarity(wrong, correct),
                 'levenshtein_similarity': cls.levenshtein_similarity(wrong, correct)
             }
-            for wrong, correct in zip(wrong_labels, labels)
+            for wrong, correct in zip(normalized_wrong_labels, normalized_labels)
         ]
+
 
     @staticmethod
     def download_content(content):
@@ -616,7 +683,7 @@ class FileController:
         # Save comparison to word document
         self.save_comparison_to_word(comparison_results, avg_simple_similarity, avg_levenshtein_similarity, "Logs.docx")
         self.calculate_avg_levenshtein_similarity("Logs.docx")
-        self.mongo_controller.update_labels(result_id, labels, user_id)
+        self.mongo_controller.update_labels(result_id,comparison_results, user_id)
         
         return jsonify({
             "status": "success",

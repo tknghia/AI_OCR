@@ -91,9 +91,9 @@ def save():
     user_id=session['user_id']
     result = file_controller.save_labels(labels, result_id,user_id)
     # Thêm task training vào queue
-    training_queue.put(True)
+    # training_queue.put(True)
     # Đảm bảo thread training đang chạy
-    start_training_thread()
+    # start_training_thread()
     return result
 
 def read_word_file(file_path):
@@ -134,6 +134,7 @@ def report_log():
     return "User not logged in or no user_id found in session.", 403
 
 
+
 @app.route('/chart')
 def view_chart():
     # Retrieve the user ID from the session
@@ -167,7 +168,7 @@ def view_chart():
             loss_percentage = 0
 
         # Append data for chart
-        samples.append(f'Sample #{log_index}')
+        samples.append(f'#{log_index}')
         average_accuracies.append(average_accuracy)
         loss_percentages.append(loss_percentage)
 
@@ -271,8 +272,16 @@ def summary_of_model():
                            )
 
 
+@app.route("/kyc", methods=["POST"])
+def KycInfo():
+    user_id = session.get('user_id')
+    if not user_id:
+        return {"error": "User not logged in"}, 403
 
+    infos = request.json.get('info', [])
+    result = mongo_controller.update_kyc_info(user_id, infos)
+    return result
 
 if __name__ == '__main__':
-    start_training_thread()
+    # start_training_thread()
     app.run(host="0.0.0.0", port=5001, debug=False)

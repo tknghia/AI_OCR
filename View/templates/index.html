@@ -86,6 +86,7 @@
 
                             <button type="button" class="file-upload-btn" id="btn_doc" onclick="downloadAsDoc()">Download as .doc</button>
                             <button type="button" class="file-upload-btn" id="btn_doc" onclick="saveToDataset()">Save</button>
+                            <button type="button" class="file-upload-btn" id="btn_doc" onclick="SaveKYCInfo()">KYC with this info</button>
                         </div>
                         <input type="file" id="file-upload" class="file-upload" multiple>
                     </div>
@@ -126,7 +127,6 @@
 }
     const result_id=document.querySelector(".result_id")
 
-    console.log(result_id)
     // Lắng nghe sự kiện thay đổi trên input file
     document.getElementById('file-upload').addEventListener('change', function (event) {
         const fileInput = event.target;
@@ -303,6 +303,26 @@ function downloadAsDoc() {
             }
         });
     }
+
+    function SaveKYCInfo() {
+    let new_content = document.getElementById('output-text').innerHTML;
+    let labelsArray = new_content.split('<br>').map(item => item.trim()); // Chuyển đổi nội dung thành danh sách và loại bỏ khoảng trắng
+
+    $.ajax({
+        url: '/kyc', // Your Flask route
+        type: 'POST',
+        data: JSON.stringify({ info: labelsArray }),
+        contentType: 'application/json',
+        processData: false,
+        success: function(response) {
+            alert("Your data has been KYC successfully");
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('Error:', textStatus, errorThrown);
+        }
+    });
+}
+
 </script>
 
 </html>
