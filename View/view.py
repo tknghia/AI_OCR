@@ -71,6 +71,17 @@ def index():
         return render_template('index.html')
     return redirect(url_for('login'))
 
+@app.route('/result')
+def result():
+    # Kiểm tra nếu người dùng đã đăng nhập
+    if 'logged_in' in session and session['logged_in']:
+        username = session['username']
+        # Lấy thông tin người dùng từ MongoDB qua AuthController
+        user_info = auth_controller.get_user_info(username)
+        return render_template('result.html', user=user_info)
+    else:
+        return render_template('login.html')
+
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
     document_type = request.form.get('documentType')  # Lấy giá trị documentType

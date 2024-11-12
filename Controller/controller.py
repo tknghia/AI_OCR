@@ -281,6 +281,17 @@ class AuthController:
         except Exception as e:
             print(f"Error during login: {e}")
             return {"error": "An error occurred during login."}
+        
+    def get_user_info(self, username):
+        user_info = self.mongo_controller.collection_users.find_one(
+            {"username": username},
+            {"_id": 0, "salt": 0}  
+        )
+    
+        if user_info:
+            return user_info
+        else:
+            return {"error": "An error occurred during login."}
 
 class ImageController:
     mongo_controller = MongoController()
