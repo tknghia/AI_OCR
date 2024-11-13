@@ -171,40 +171,23 @@ class MongoController:
                 print(f"No user found with id: {user_id}")
                 return {"error": "User not found"}
 
-            # Chuyển đổi 'kyc_info' từ danh sách sang từ điển nếu cần
-            if isinstance(kyc_info, list):
-                kyc_dict = {}
-                current_place_values = []  # List để chứa các giá trị của current_place
-                for item in kyc_info:
-                    # Split thành key-value (giả định mỗi mục theo dạng "key: value")
-                    key_value = item.split(": ", 1)
-                    if len(key_value) == 2:
-                        key = key_value[0].strip().lower().replace(" ", "_")
-                        value = key_value[1].strip()
-                        
-                        # Kiểm tra nếu key là 'current_places'
-                        if key == 'current_places':
-                            current_place_values.append(value)
-                        else:
-                            kyc_dict[key] = value
-
-                # Kết hợp các giá trị 'current_place' thành một chuỗi duy nhất
-                combined_current_place = " ".join(current_place_values)
-                kyc_dict['current_places'] = combined_current_place
-
-            else:
-                kyc_dict = kyc_info
+            # Extract relevant fields from kyc_info
+            kyc_dict = {
+                "id_card":kyc_info.get("id_card", user.get("id_card", "")),
+                "name": kyc_info.get("name", user.get("name", "")),
+                "dob": kyc_info.get("dob", user.get("dob", "")),
+                "nationality": kyc_info.get("nationality", user.get("nationality", "")),
+                "current_place": kyc_info.get("current_place", user.get("current_place", ""))
+            }
 
             # Cập nhật các trường thông tin KYC
             update_fields = {
+                "id_card":kyc_dict["id_card"],
                 "is_kyc": True,  # Đặt is_kyc là True khi cập nhật thông tin KYC
-                "id_card": kyc_dict.get('id', user.get('id_card', "")),
-                "original_place": kyc_dict.get('origin_place', user.get('original_place', "")),
-                "dob": kyc_dict.get('dob', user.get('dob', "")),
-                "current_place": kyc_dict.get('current_places', user.get('current_place', "")),
-                "nationality": kyc_dict.get('nationality', user.get('nationality', "")),
-                "gender": kyc_dict.get('gender', user.get('gender', "")),
-                "expire_date": kyc_dict.get('expire_date', user.get('expire_date', ""))
+                "name": kyc_dict["name"],
+                "dob": kyc_dict["dob"],
+                "nationality": kyc_dict["nationality"],
+                "current_place": kyc_dict["current_place"]
             }
 
             # Cập nhật thông tin trong collection
@@ -215,6 +198,8 @@ class MongoController:
         except Exception as e:
             print(f"An error occurred while updating KYC information for user with id {user_id}: {e}")
             return {"error": f"An error occurred: {e}"}
+
+
 
 
 class AuthController:
@@ -280,6 +265,17 @@ class AuthController:
 
         except Exception as e:
             print(f"Error during login: {e}")
+            return {"error": "An error occurred during login."}
+        
+    def get_user_info(self, userId):
+        user_info = self.mongo_controller.collection_users.find_one(
+            {"_id":ObjectId(userId) },
+            {"_id": 0, "salt": 0}  
+        )
+
+        if user_info:
+            return user_info
+        else:
             return {"error": "An error occurred during login."}
 
 class ImageController:
@@ -430,7 +426,7 @@ class ImageController:
 
             return '\n'.join(all_predictions), cropped_images_metadata
 
-    def process_images(self, files,type, userId=None):
+    def process_images(self, files,type,update_profile=None, userId=None):
         upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         predictions, cropped_images = self.convert_images(files,type)
 
@@ -440,8 +436,10 @@ class ImageController:
         with open(log_file_path, "a", encoding='utf-8') as log_file:
             log_entries = [f"{upload_time} - Uploaded file: {file.filename}" for file in files]
             log_file.write("\n".join(log_entries) + "\n")
-
-        prediction_id = self.mongo_controller.log_predictions(predictions, upload_time, cropped_images,userId)
+        if update_profile is None:
+            prediction_id = self.mongo_controller.log_predictions(predictions, upload_time, cropped_images,userId)
+        else:
+            prediction_id=None
         return jsonify({'predictions': predictions, 'prediction_id': prediction_id})
 
     @staticmethod

@@ -24,14 +24,13 @@ class_names = {
     10: 'year',
 }
 
-# Điều chỉnh desired_order để không bao gồm current_places
-# current_places sẽ được xử lý riêng và thêm vào cuối
+# Điều chỉnh desired_order để không bao gồm address
+# address sẽ được xử lý riêng và thêm vào vị trí thứ 4
 desired_order = [
     'number', 
     'name', 
     'birth', 
     'nationality', 
-    'address', 
     'class', 
     'place',
     'day',
@@ -50,14 +49,13 @@ def generate_random_id(length=5):
 def extract_image_segments(cv_image):
     # Ensure the image is in RGB format if it's in BGR
     img_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-
     # Perform detection using YOLOv8
     results = model(img_rgb, conf=0.4)
 
     # Initialize lists and dictionaries
     ordered_segments = []
     detected_segments = {}
-    current_places_segments = []
+    address_segments = []
     
     # Process each detection
     for result in results:
@@ -98,19 +96,20 @@ def extract_image_segments(cv_image):
                 }
             }
             
-            # Xử lý riêng cho current_places
-            if class_name == 'current_places':
-                current_places_segments.append(segment_info)
+            # Xử lý riêng cho address
+            if class_name == 'address':
+                address_segments.append(segment_info)
             else:
                 detected_segments[class_name] = segment_info
-            # Sắp xếp các trường theo desired_order
+    
+    # Sắp xếp các trường theo desired_order
     for field in desired_order:
         if field in detected_segments:
             ordered_segments.append(detected_segments[field])
-    
-    # Thêm tất cả current_places vào cuối
-    # Sắp xếp current_places theo tọa độ y để đảm bảo thứ tự từ trên xuống
-    current_places_segments.sort(key=lambda x: x['coordinates']['y_min'])
-    ordered_segments.extend(current_places_segments)
+    # Sắp xếp address theo tọa độ y để đảm bảo thứ tự từ trên xuống
+    address_segments.sort(key=lambda x: x['coordinates']['y_min'])
+    # Thêm tất cả address vào vị trí thứ 4
+    insert_position = min(4, len(ordered_segments))
+    ordered_segments[insert_position:insert_position] = address_segments
     
     return ordered_segments

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Result</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Content styling */
+        .content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            background-color: #f4f4f9;
+            padding: 20px;
+            width: 100%;
+        }
+
+        .result-box {
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 100%;
+            text-align: left;
+            box-sizing: border-box;
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .result-box h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        /* Left and Right Columns Styling */
+        .left-column,
+        .right-column {
+            width: 50%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .left-column p,
+        .right-column p {
+            font-size: 1em;
+            color: #555;
+            line-height: 1.6;
+            margin: 8px 0;
+        }
+
+        .left-column input,
+        .right-column input {
+            width: 100%;
+            padding: 8px;
+            font-size: 1em;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Avatar Style */
+        .avatar {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background-color: #ddd;
+            display: block;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        /* Button Container */
+        .button-container {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .button-container button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .button-container button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 768px) {
+            .left-column,
+            .right-column {
+                width: 100%;
+            }
+        }
+
+        /* Horizontal Line (Divider) */
+        hr {
+            width: 100%;
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+
+        /* Loading Screen Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 5px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: rotate 0.8s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="logo">
+                <h1>Image to Text Converter</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="#">Jpg to Word</a></li>
+                    <li><a href="/report_log">Report Log</a></li>
+                    <li><a href="/chart">Chart</a></li>
+                    <li><a href="/result">Account</a></li>
+                    <li><a href="/login">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <div class="content-wrapper">
+        <div class="result-box">
+            <h2>User Profile  {% if user["is_kyc"] == true %} (You already KYC)  {% else %} (Please KYC for alternative info) {% endif %}  </h2>
+
+            <!-- Left Column (User Info) -->
+            <div class="left-column">
+                <div style="text-align: center;">
+                    <!-- Avatar -->
+                    <div class="avatar">
+                        {% if user["is_kyc"] is none or user["is_kyc"] is false %}
+                        <img src="{{ url_for('static', filename='images/isNotKyc.png') }}" alt="Not KYC Avatar">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='images/isKyc.png') }}" alt="KYC Avatar">
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div>
+                    <p><strong>User Name:</strong> {{ user['username'] }}</p>
+                    <p><strong>Email:</strong> {{ user['email'] }}</p>
+                </div>
+            </div>
+
+            <!-- Right Column (Other Info) -->
+            <div class="right-column">
+                <p><strong>Số ID:</strong></p>
+                <input type="text" id="id_card" value="{{ user.get('id_card', 'please update your info ...') }}" >
+
+                <p><strong>Họ và tên:</strong></p>
+                <input type="text" id="name" value="{{ user.get('name', 'please update your info ...') }}" >
+
+                <p><strong>Ngày sinh:</strong></p>
+                <input type="text" id="dob" value="{{ user.get('dob', 'please update your info ...') }}" >
+
+                <p><strong>Quốc tịch:</strong></p>
+                <input type="text" id="nationality" value="{{ user.get('nationality', 'please update your info ...') }}" >
+
+                <p><strong>Địa chỉ thường trú:</strong></p>
+                <input type="text" id="current_place" value="{{ user.get('current_place', 'please update your info ...') }}" >
+                <hr>
+            </div>
+        </div>
+    </div>
+
+    <!-- Button Container -->
+    <div class="button-container">
+        <button onclick="KYC()">{% if user["is_kyc"] == False or user["is_kyc"] is none %} KYC Id Card{% else %} Update Id Card {%endif%} </button>
+        <button onclick="saveProfile()">Save</button>
+        <input type="file" id="file-upload" class="file-upload" multiple>
+        <div class="result_id" style="display: none;"></div>
+        <div id="output-text" style="display:none"></div>
+    </div>
+
+    <!-- Loading Screen Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+        let kycVisible = false;
+
+        function KYC() {
+            alert("Your ID card will immediately be used for KYC, so please choose carefully.");
+            console.log("Open file browser");
+            openFileBrowser().then(() => {
+                console.log("File selected, calling convert function");
+                callConvert();
+            });
+        }
+
+        function openFileBrowser() {
+            return new Promise((resolve) => {
+                const fileInput = document.getElementById('file-upload');
+                fileInput.click(); // Trigger file input click event
+
+                fileInput.addEventListener('change', function onFileSelect() {
+                    // Resolve the promise when files are selected
+                    resolve();
+                    // Remove the event listener to prevent multiple triggers
+                    fileInput.removeEventListener('change', onFileSelect);
+                });
+            });
+        }
+
+        function callConvert() {
+            const documentType = "CCCD";
+            const fileInput = document.getElementById('file-upload');
+            const formData = new FormData();
+            let result_id = document.querySelector(".result_id");
+            formData.append('documentType', documentType);
+            formData.append('KYC_PROFILE',true)
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('images', fileInput.files[i]);
+            }
+
+            // Show the loading overlay
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.add('show');
+
+            $.ajax({
+                url: '/convert',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    console.log('Response from server:', response);
+                    result_id.innerHTML = response.prediction_id;
+                    const modifiedResponse = response.predictions.replace(/\n/g, '<br>');
+                    document.getElementById('output-text').innerHTML=modifiedResponse
+                    // Create kyc_dict and current_place_values from the response
+                    let kyc_dict = {};
+                    let current_place_values = [];
+
+                    let kyc_info = response.predictions.split('\n'); // Assuming predictions is a string with key-value pairs
+                    kyc_info.forEach(item => {
+                        // Split the item into key and value (assumes "key: value" format)
+                        let key_value = item.split(": ", 2);
+
+                        if (key_value.length === 2) {
+                            let key = key_value[0].trim().toLowerCase().replace(/\s+/g, "_"); // Convert key to lowercase and replace spaces with underscores
+                            let value = key_value[1].trim();
+
+                            // Check if the key is 'current_places'
+                            if (key === 'current_places') {
+                                current_place_values.push(value);
+                            } else {
+                                kyc_dict[key] = value;
+                            }
+                        }
+                    });
+
+                    // Now, populate the right column with the values from kyc_dict
+                    document.getElementById('id_card').value = kyc_dict['id'] || document.getElementById('id_card').value || 'please update your info ...';
+                    document.getElementById('name').value = kyc_dict['name'] || document.getElementById('name').value || 'please update your info ...';
+                    document.getElementById('dob').value = kyc_dict['dob'] || document.getElementById('dob').value || 'please update your info ...';
+                    document.getElementById('nationality').value = kyc_dict['nationality'] || document.getElementById('nationality').value || 'please update your info ...';
+                    document.getElementById('current_place').value = current_place_values || document.getElementById('current_place').value || 'please update your info ...';
+
+                    // Hide the loading overlay
+                    loadingOverlay.classList.remove('show');
+                },
+                error: function(error) {
+                    console.log('Error:', error);
+
+                    // Hide the loading overlay
+                    loadingOverlay.classList.remove('show');
+                }
+            });
+        }
+
+        function saveProfile() {
+            const userInfo = {
+                id_card:document.getElementById("id_card").value,
+                name: document.getElementById('name').value,
+                dob: document.getElementById('dob').value,
+                nationality: document.getElementById('nationality').value,
+                current_place: document.getElementById('current_place').value
+            };
+
+            console.log(userInfo);
+
+            // Send POST request to /kyc endpoint
+            $.ajax({
+                url: '/kyc',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ info: userInfo }),  // Send 'info' as part of the request body
+                success: function(response) {
+                    alert("Profile information saved successfully!");
+                    console.log(response);
+                },
+                error: function(error) {
+                    console.error("Error saving profile:", error);
+                    alert("An error occurred while saving the profile.");
+                }
+            });
+        }
+
+    </script>
+</body>
+
+</html>

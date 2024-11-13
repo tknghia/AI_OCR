@@ -25,7 +25,8 @@
                     <li><a href="/report_log">Report Log</a></li>
                     <li><a href="/chart">Chart</a></li>
                     <li><a href="/summary">Summary</a></li>
-                    <li><a href="/login">Account</a></li>
+                    <li><a href="/result">Account</a></li>
+                    <li><a href="/login">Logout</a></li>
                 </ul>
             </nav>
         </div>
@@ -86,7 +87,6 @@
 
                             <button type="button" class="file-upload-btn" id="btn_doc" onclick="downloadAsDoc()">Download as .doc</button>
                             <button type="button" class="file-upload-btn" id="btn_doc" onclick="saveToDataset()">Save</button>
-                            <button type="button" class="file-upload-btn" id="btn_doc" onclick="SaveKYCInfo()">KYC with this info</button>
                         </div>
                         <input type="file" id="file-upload" class="file-upload" multiple>
                     </div>
@@ -304,24 +304,7 @@ function downloadAsDoc() {
         });
     }
 
-    function SaveKYCInfo() {
-    let new_content = document.getElementById('output-text').innerHTML;
-    let labelsArray = new_content.split('<br>').map(item => item.trim()); // Chuyển đổi nội dung thành danh sách và loại bỏ khoảng trắng
 
-    $.ajax({
-        url: '/kyc', // Your Flask route
-        type: 'POST',
-        data: JSON.stringify({ info: labelsArray }),
-        contentType: 'application/json',
-        processData: false,
-        success: function(response) {
-            alert("Your data has been KYC successfully");
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.log('Error:', textStatus, errorThrown);
-        }
-    });
-}
 
 </script>
 

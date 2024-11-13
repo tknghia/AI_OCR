@@ -71,12 +71,24 @@ def index():
         return render_template('index.html')
     return redirect(url_for('login'))
 
+@app.route('/result')
+def result():
+    # Kiểm tra nếu người dùng đã đăng nhập
+    user_id = session.get('user_id')
+    if 'logged_in' in session and session['logged_in']:
+        # Lấy thông tin người dùng từ MongoDB qua AuthController
+        user_info = auth_controller.get_user_info(user_id)
+        return render_template('result.html', user=user_info)
+    else:
+        return render_template('login.html')
+
 @app.route('/convert', methods=['POST'])
 def handle_convert_images():
-    document_type = request.form.get('documentType')  # Lấy giá trị documentType
+    document_type = request.form.get('documentType')
+    update_profile = request.form.get('KYC_PROFILE')  # Lấy giá trị documentType
     files = request.files.getlist('images')
     user_id = session.get('user_id')
-    return image_controller.process_images(files, type=document_type, userId=user_id)
+    return image_controller.process_images(files,document_type,update_profile, userId=user_id)
 
 
 @app.route('/download', methods=['POST'])
