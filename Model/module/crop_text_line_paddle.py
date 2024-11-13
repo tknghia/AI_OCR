@@ -4,8 +4,9 @@ import string
 import numpy as np
 import cv2
 from paddleocr import PaddleOCR
-# Initialize PaddleOCR
-ocr = PaddleOCR(lang="en")
+
+# Initialize PaddleOCR with use_angle_cls set to False to disable automatic orientation detection
+ocr = PaddleOCR(lang="en", use_angle_cls=False)
 
 def generate_random_id(length=5):
     characters = string.ascii_letters + string.digits  # Uppercase, lowercase letters, and digits

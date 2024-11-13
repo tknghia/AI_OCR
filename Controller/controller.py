@@ -351,7 +351,7 @@ class ImageController:
             return cv2.rotate(rotated_image, cv2.ROTATE_180)
         return rotated_image
 
-    @staticmethod
+
     def is_wider_than_tall(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -380,8 +380,8 @@ class ImageController:
             for file in files:
                 img = Image.open(file)
                 cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                rotated_image = ImageController.detect_logo_and_rotate(cv_image)
-                enhanced_image = ImageController.adjust_image_brightness(rotated_image)
+                # rotated_image = ImageController.detect_logo_and_rotate(cv_image)
+                enhanced_image = ImageController.adjust_image_brightness(cv_image)
 
 
                 height, width = enhanced_image.shape[:2]
