@@ -17,6 +17,7 @@ from pymongo import MongoClient
 from bson import ObjectId
 import shutil
 from sklearn.model_selection import train_test_split
+
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
@@ -315,6 +316,9 @@ class ImageController:
         logo_path = os.path.join(current_dir, '..', 'View', 'static', 'images', 'logo_cccd.png')
         logo_ref = cv2.imread(logo_path, 0)
 
+        if logo_ref is None:
+            raise FileNotFoundError(f"Logo file not found")
+
         sift = cv2.SIFT_create()
         kp_ref, des_ref = sift.detectAndCompute(logo_ref, None)
 
@@ -349,9 +353,29 @@ class ImageController:
             if center_x < width / 2 and center_y < height / 2:
                 return rotated_image
             return cv2.rotate(rotated_image, cv2.ROTATE_180)
-        return rotated_image
+        else:
+            face_position = ImageController.is_face_on_left(rotated_image)
+            if face_position is None:
+                print("No face detected")
+                return rotated_image
+            if face_position:
+                return rotated_image
+            else:
+                return cv2.rotate(rotated_image, cv2.ROTATE_180)
 
+    @staticmethod
+    def detect_face_and_rotate(image):
+        def determine_horizontal_orientation(img):
+            return img if ImageController.is_wider_than_tall(img) else cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
+        rotated_image = determine_horizontal_orientation(image)
+        face_position = ImageController.is_face_on_left(rotated_image)
+        if face_position:
+            return rotated_image
+        else:
+            return cv2.rotate(rotated_image, cv2.ROTATE_180)
+
+    @staticmethod
     def is_wider_than_tall(img):
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -366,7 +390,7 @@ class ImageController:
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) if len(img.shape) == 3 else img
         faces = face_cascade.detectMultiScale(gray, scaleFactor=1.05, minNeighbors=15, minSize=(50, 50))
-        if not faces:
+        if len(faces) == 0:
             return None
         largest_face = max(faces, key=lambda f: f[2] * f[3])
         face_center_x = largest_face[0] + largest_face[2] / 2
@@ -380,9 +404,14 @@ class ImageController:
             for file in files:
                 img = Image.open(file)
                 cv_image = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
-                # rotated_image = ImageController.detect_logo_and_rotate(cv_image)
-                enhanced_image = ImageController.adjust_image_brightness(cv_image)
+                if type == "CCCD":
+                    rotated_image = ImageController.detect_logo_and_rotate(cv_image)
+                elif type == "GPLX" or type == "Passport":
+                    rotated_image = ImageController.detect_face_and_rotate(cv_image)
+                else: 
+                    rotated_image = cv_image
 
+                enhanced_image = ImageController.adjust_image_brightness(rotated_image)
 
                 height, width = enhanced_image.shape[:2]
                 if height > 55:
@@ -675,10 +704,10 @@ class FileController:
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write('\n'.join(cleaned_lines))
             
-            print(f"Đã xử lý xong file: {file_path}")
+            print(f"Da xu ly xong file: {file_path}")
             
         except Exception as e:
-            print(f"Có lỗi xảy ra: {str(e)}")
+            print(f"Co loi xay ra: {str(e)}")
 
 
     def save_labels(self, labels, result_id, user_id=None):

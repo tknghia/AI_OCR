@@ -10,6 +10,20 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 pj_dir = os.path.dirname(os.path.dirname(current_dir))
 MODEL_PATH = os.path.join(pj_dir, "model", "data", "best_blx.pt")
 
+field_names = {
+    'address': 'current_places',
+    'birth': 'dob',
+    'class': 'class',
+    'day': 'day',
+    'month': 'month',
+    'year': 'year',
+    'expiry': 'expire_date',
+    'name': 'name',
+    'nationality': 'nationality',
+    'number': 'id',
+    'place': 'place',
+}
+
 class_names = {
     0: 'address',
     1: 'birth',
@@ -87,7 +101,8 @@ def extract_image_segments(cv_image):
             segment_info = {
                 "id": segment_id,
                 "roi": roi,
-                "type": class_name,
+                "type": field_names.get(class_name, class_name),
+                "type_en": class_name,
                 "coordinates": {
                     "x_min": x_min,
                     "y_min": y_min,

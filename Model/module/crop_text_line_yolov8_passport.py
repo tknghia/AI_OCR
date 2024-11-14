@@ -18,7 +18,7 @@ class_names = {
     3: 'doi',
     4: 'exp',
     5: 'gender',
-    6: 'idcard',
+    6: 'id',
     7: 'mrz1',
     8: 'mrz2',
     9: 'name',
@@ -36,7 +36,7 @@ desired_order = [
     'dob', 
     'gender', 
     'address', 
-    'idcard',
+    'id',
     'doi', 
     'exp'
 ]
