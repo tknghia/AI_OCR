@@ -41,6 +41,11 @@ class MongoController:
         self.log_collection = self.db['Logs']
         self.collection_users = self.db['Users']
 
+    def get_all_users(self):
+        # Lấy tất cả người dùng từ collection "Users"
+        users = self.collection_users.find()  # Truy vấn tất cả tài liệu trong collection Users
+        return list(users)  # Trả về danh sách tất cả người dùng dưới dạng danh sách Python
+
     def select_prediction_by_id(self, id):
         try:
             object_id = ObjectId(id)  # Convert string ID to ObjectId

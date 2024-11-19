@@ -1,8 +1,9 @@
+import collections
 import os
 import sys
 import base64
 import io
-from flask import Flask, render_template, request, jsonify, session, url_for, redirect
+from flask import Flask, render_template, request, jsonify, send_file, session, url_for, redirect
 from docx import Document
 from matplotlib import pyplot as plt
 import threading
@@ -11,6 +12,8 @@ from queue import Queue
 import nbformat
 from nbconvert import PythonExporter
 from nbconvert.preprocessors import ExecutePreprocessor
+import pandas as pd
+from openpyxl.styles import PatternFill
 
 # Add project root to sys.path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -70,6 +73,53 @@ def index():
     if session.get('logged_in'):
         return render_template('index.html')
     return redirect(url_for('login'))
+
+@app.route('/export_excel')
+def export_excel():
+    users = mongo_controller.get_all_users()
+    return render_template('export_excel.html', users=users)
+
+@app.route('/export_excel1')
+def export_excel1():
+   
+    users = mongo_controller.get_all_users() 
+
+    # Chuyển dữ liệu người dùng hiện có thành DataFrame của pandas
+    data = [
+    {
+        "Username": user.get("username", ""),  
+        "Email": user.get("email", ""), 
+        "ID_Card": user.get("id_card", ""),  
+        "Tên": user.get("name", ""), 
+        "Địa Chỉ": user.get("current_place", ""),  
+        "Ngày Sinh": user.get("dob", ""),  
+        "Quốc Tịch": user.get("nationality", ""),  
+        "Trạng Thái KYC": 'Đã xác minh' if user.get("is_kyc") else '',
+    }
+        for user in users
+    ]
+
+    df = pd.DataFrame(data)
+
+    output = io.BytesIO()
+    
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Users')
+        workbook = writer.book
+        worksheet = workbook['Users']
+
+        kyc_column_index = 8
+        for row in range(2, len(df) + 2): 
+            kyc_cell = worksheet.cell(row=row, column=kyc_column_index)
+
+            if kyc_cell.value == 'Đã xác minh':
+                kyc_cell.fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")  
+            else:
+                kyc_cell.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")  
+    output.seek(0)
+    
+    return send_file(output, as_attachment=True, download_name="users.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 @app.route('/result')
 def result():
