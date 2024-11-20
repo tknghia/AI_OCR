@@ -1,0 +1,13 @@
+<nav>
+    <ul>
+        <li><a href="/">Home</a></li>
+        {% if is_admin %}
+            <li><a href="/export_excel">Export User</a></li>
+        {% endif %}
+        <li><a href="/report_log">Report Log</a></li>
+        <li><a href="/chart">Chart</a></li>
+        <li><a href="/summary">Summary</a></li>
+        <li><a href="/result">Account</a></li>
+        <li><a href="/login">Logout</a></li>
+    </ul>
+</nav>

@@ -265,20 +265,27 @@ class AuthController:
             # Hash mật khẩu với salt từ user và kiểm tra
             hashed_password = self.hash_password(password, user['salt'])
             if hashed_password == user['password']:
-                return {"message": "Login successful.", "user_id": str(user['_id'])}
+                # Chuẩn bị kết quả trả về
+                response = {"message": "Login successful.", "user_id": str(user['_id'])}
+                
+                # Chỉ thêm is_admin nếu tồn tại
+                if "is_admin" in user:
+                    response["is_admin"] = user["is_admin"]
+
+                return response
             else:
                 return {"error": "Invalid username or password."}
 
         except Exception as e:
             print(f"Error during login: {e}")
             return {"error": "An error occurred during login."}
+
         
     def get_user_info(self, userId):
         user_info = self.mongo_controller.collection_users.find_one(
             {"_id":ObjectId(userId) },
             {"_id": 0, "salt": 0}  
         )
-
         if user_info:
             return user_info
         else:

@@ -71,7 +71,8 @@ def start_training_thread():
 @app.route('/')
 def index():
     if session.get('logged_in'):
-        return render_template('index.html')
+        is_admin=session['is_admin']
+        return render_template('index.html',is_admin=is_admin)
     return redirect(url_for('login'))
 
 @app.route('/export_excel')
@@ -81,21 +82,20 @@ def export_excel():
 
 @app.route('/export_excel1')
 def export_excel1():
-   
     users = mongo_controller.get_all_users() 
 
     # Chuyển dữ liệu người dùng hiện có thành DataFrame của pandas
     data = [
-    {
-        "Username": user.get("username", ""),  
-        "Email": user.get("email", ""), 
-        "ID_Card": user.get("id_card", ""),  
-        "Tên": user.get("name", ""), 
-        "Địa Chỉ": user.get("current_place", ""),  
-        "Ngày Sinh": user.get("dob", ""),  
-        "Quốc Tịch": user.get("nationality", ""),  
-        "Trạng Thái KYC": 'Đã xác minh' if user.get("is_kyc") else '',
-    }
+        {
+            "Username": user.get("username", ""),  
+            "Email": user.get("email", ""), 
+            "ID_Card": user.get("id_card", ""),  
+            "Tên": user.get("name", ""), 
+            "Địa Chỉ": user.get("current_place", ""),  
+            "Ngày Sinh": user.get("dob", ""),  
+            "Quốc Tịch": user.get("nationality", ""),  
+            "Trạng Thái KYC": 'Đã xác minh' if user.get("is_kyc") else 'Chưa xác minh',
+        }
         for user in users
     ]
 
@@ -108,17 +108,50 @@ def export_excel1():
         workbook = writer.book
         worksheet = workbook['Users']
 
-        kyc_column_index = 8
+        # Format Header Row
+        from openpyxl.styles import Alignment, Font, Border, Side
+        header_font = Font(bold=True, size=12, color="FFFFFF")
+        header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid")
+        thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+
+        for col in worksheet.iter_cols(min_row=1, max_row=1, min_col=1, max_col=len(df.columns)):
+            for cell in col:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.border = thin_border
+
+        # Format Data Rows
+        for row in worksheet.iter_rows(min_row=2, max_row=len(df) + 1, min_col=1, max_col=len(df.columns)):
+            for cell in row:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+                cell.border = thin_border
+
+        # Apply Conditional Formatting for KYC Column
+        kyc_column_index = 8  # "Trạng Thái KYC" column
         for row in range(2, len(df) + 2): 
             kyc_cell = worksheet.cell(row=row, column=kyc_column_index)
-
             if kyc_cell.value == 'Đã xác minh':
                 kyc_cell.fill = PatternFill(start_color="00FF00", end_color="00FF00", fill_type="solid")  
             else:
                 kyc_cell.fill = PatternFill(start_color="FF0000", end_color="FF0000", fill_type="solid")  
+
+        # Auto-adjust Column Width
+        for column_cells in worksheet.columns:
+            max_length = 0
+            column_letter = column_cells[0].column_letter  # Get column letter
+            for cell in column_cells:
+                try:
+                    if cell.value:
+                        max_length = max(max_length, len(str(cell.value)))
+                except:
+                    pass
+            adjusted_width = max_length + 2  # Add some padding
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+
     output.seek(0)
-    
     return send_file(output, as_attachment=True, download_name="users.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
 
 
 @app.route('/result')
@@ -190,8 +223,8 @@ def report_log():
                 ]
             }
             processed_logs.append(processed_log)
-        
-        return render_template('report_log.html', logs=processed_logs)
+        is_admin=session['is_admin']
+        return render_template('report_log.html', logs=processed_logs,is_admin=is_admin)
 
     return "User not logged in or no user_id found in session.", 403
 
@@ -250,9 +283,9 @@ def view_chart():
     buf.seek(0)
     graph_url = base64.b64encode(buf.getvalue()).decode('utf-8')
     buf.close()
-
+    is_admin=session['is_admin']
     # Pass the chart to the HTML template
-    return render_template('chart.html', graph_url=graph_url)
+    return render_template('chart.html', graph_url=graph_url,is_admin=is_admin)
 
 
 @app.route('/register', methods=["POST"])
@@ -266,17 +299,16 @@ def login():
     if request.method == "POST":
         data = request.get_json() if request.is_json else request.form
         result = auth_controller.login(data.get("username"), data.get("password"))
-        
         # Check for a successful login response with user_id
         if result.get("message") == "Login successful.":
             session['logged_in'] = True
             session['username'] = data.get("username")
+            session['is_admin'] = result.get("is_admin")  # Ensure this is being set
             session['user_id'] = result.get("user_id")  # Store user ID in the session
             return jsonify({"message": result["message"], "user_id": result["user_id"]})
         
         # Return error response if login failed
         return jsonify({"error": result.get("error")}), 401
-
     return render_template("login.html")
 
 @app.route('/summary')
@@ -324,13 +356,14 @@ def summary_of_model():
     else:
         average_accuracy = 0
         loss_percentage = 0
-
+    is_admin=session['is_admin']
     # Pass the calculated data and samples to the template
     return render_template('summary.html', total_samples=len(logs), 
                            average_accuracy=average_accuracy, 
                            loss_percentage=loss_percentage, 
                            failed_samples=failed_samples,
-                           correct_samples=correct_samples
+                           correct_samples=correct_samples,
+                           is_admin=is_admin
                            )
 
 

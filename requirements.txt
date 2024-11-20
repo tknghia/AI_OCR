@@ -12,4 +12,5 @@ paddlepaddle
 paddleocr
 nbformat
 nbconvert
+openpyxl
 
