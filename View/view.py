@@ -378,6 +378,7 @@ def KycInfo():
     return result
 
 def start_app():
+    #start_training_thread()
     app.run(host="0.0.0.0", port=5001, debug=False)
 if __name__ == '__main__':
     start_app()
