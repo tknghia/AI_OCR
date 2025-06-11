@@ -29,4 +29,5 @@ python main.py
 ---
 
 ## 📌 Lưu ý quan trọng:
-- Model được train tập trung để convert các loại giấy tờ như giấy phép lái xe, căng cước, ...... 
+- Model được train tập trung để convert các loại giấy tờ như giấy phép lái xe, căng cước, ......
+- Có thể kích hoạt chạy 2 luồng để vừa convert ảnh vừa trainning tuy nhiên sẽ nặng máy. ( tại method start_app của view và enable trainning thread )
