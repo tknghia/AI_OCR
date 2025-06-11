@@ -1,10 +1,3 @@
-Lỗi bạn gặp là do đoạn `README.md` của bạn đang dùng **Markdown sai cú pháp**, cụ thể là bạn mở các khối code (\`\`\`bash) nhưng **không đóng chúng lại**, và **viết Markdown link trong khối code**.
-
----
-
-## ✅ Dưới đây là bản sửa **đúng cú pháp** cho đoạn README của bạn:
-
-````markdown
 # AI_OCR 
 
 ### 1. Cài đặt thư viện Node.js
