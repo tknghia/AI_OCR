@@ -29,11 +29,4 @@ python main.py
 ---
 
 ## 📌 Lưu ý quan trọng:
-- **Mỗi khối lệnh (`bash`) phải được đóng bằng ` ``` `** — nếu không, Markdown sẽ bị hỏng.
-- **Link (`[text](url)`) không được viết bên trong khối lệnh (`bash`)**.
-
----
-
-Bạn có muốn mình giúp tạo `README.md` hoàn chỉnh, có cả cấu trúc thư mục, mô tả API hoặc hình ảnh minh họa?
-````
-
+- Model được train tập trung để convert các loại giấy tờ như giấy phép lái xe, căng cước, ...... 
