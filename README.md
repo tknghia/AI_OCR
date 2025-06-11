@@ -7,9 +7,6 @@ npm install
 
 ### 2. Cài đặt các thư viện Python trong requirements.txt
 
-```bash
-pip install -r requirements.txt
-```
 
 ### 3. Tải file `.pth` từ Google Drive
 
