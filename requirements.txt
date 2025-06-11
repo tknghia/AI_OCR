@@ -4,7 +4,6 @@ pillow
 opencv-python
 torch
 torchvision
-Document
 flask
 matplotlib
 vietocr
