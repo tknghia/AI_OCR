@@ -377,6 +377,7 @@ def KycInfo():
     result = mongo_controller.update_kyc_info(user_id, infos)
     return result
 
-if __name__ == '__main__':
-    # start_training_thread()
+def start_app():
     app.run(host="0.0.0.0", port=5001, debug=False)
+if __name__ == '__main__':
+    start_app()
